@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六歲數學測驗總覽</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .quiz-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .quiz-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-4xl mx-auto">
+        <div class="bg-white bg-opacity-90 rounded-3xl shadow-2xl p-8 sm:p-12 text-center">
+            
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-4">
+                🚀 數學小高手挑戰 🌟
+            </h1>
+            <p class="text-lg sm:text-xl text-gray-600 mb-10">
+                選擇一個測驗開始你的冒險吧！
+            </p>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 sm:gap-6">
+                <!-- Links to 10 quiz files will be generated here -->
+                <script>
+                    const container = document.querySelector('.grid');
+                    const colors = [
+                        'from-red-400 to-red-600',
+                        'from-yellow-400 to-yellow-600',
+                        'from-green-400 to-green-600',
+                        'from-blue-400 to-blue-600',
+                        'from-indigo-400 to-indigo-600',
+                        'from-purple-400 to-purple-600',
+                        'from-pink-400 to-pink-600',
+                        'from-orange-400 to-orange-600',
+                        'from-teal-400 to-teal-600',
+                        'from-cyan-400 to-cyan-600'
+                    ];
+                    const icons = ['🍎', '🍌', '🍓', '🍇', '🍉', '🍊', '🍍', '🥝', '🍑', '🍒'];
+
+                    for (let i = 1; i <= 10; i++) {
+                        const fileNumber = i.toString().padStart(2, '0');
+                        const fileName = `6_year_math_${fileNumber}.html`;
+                        const colorClass = colors[i-1];
+                        const icon = icons[i-1];
+                        
+                        const cardHtml = `
+                            <a href="${fileName}" class="quiz-card bg-gradient-to-br ${colorClass} text-white rounded-2xl p-4 flex flex-col items-center justify-center aspect-square">
+                                <div class="text-4xl mb-2">${icon}</div>
+                                <div class="text-xl font-bold">
+                                    測驗 ${i}
+                                </div>
+                            </a>
+                        `;
+                        container.innerHTML += cardHtml;
+                    }
+                </script>
+            </div>
+
+            <p class="mt-12 text-gray-500">
+                完成所有挑戰，成為數學大師！🏆
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
