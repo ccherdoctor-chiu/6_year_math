@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六歲數學探險家測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #000011; /* Deep space black */
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+        }
+        #app > div {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .voyager-badge {
+            animation: nebula-glow 4s infinite ease-in-out;
+        }
+        @keyframes nebula-glow {
+            0%, 100% {
+                transform: scale(1);
+                text-shadow: 0 0 10px #fff, 0 0 20px #9333ea, 0 0 30px #9333ea, 0 0 40px #3b82f6;
+            }
+            50% {
+                transform: scale(1.05);
+                text-shadow: 0 0 20px #fff, 0 0 40px #a855f7, 0 0 60px #60a5fa, 0 0 80px #60a5fa;
+            }
+        }
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.5rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2.25rem;
+                line-height: 2.75rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables to manage the quiz
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+
+        // Voyager level quiz questions for 6-year-olds
+        const questions = [
+            // 計算 (3題) - 巨大數字、光年
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "光速非常快，每秒約30萬公里。太空船🚀的速度遠遠慢於光速。哪個速度更快？", options: ["光速", "太空船", "一樣快", "無法比較"], correct: 0, type: "calculation", explanation: "光速是目前已知宇宙中最快的速度，任何有質量的物體都無法超越它。" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "地球到月球距離約38萬公里，地球到太陽距離約1億5千萬公里。哪個距離比較遠？", options: ["到月球", "到太陽", "一樣遠", "題目錯了"], correct: 1, type: "calculation", explanation: "1億5千萬遠遠大於38萬。太陽系的尺度遠超我們的想像。" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "如果一個外星文明在10光年外，代表我們看到的是他們幾年前的樣子？", options: ["現在的樣子", "10年前", "20年前", "10年後"], correct: 1, type: "calculation", explanation: "光需要時間來傳播。10光年外的信號，需要花10年才能到達我們這裡，所以我們看到的是他們10年前的過去。" },
+            
+            // 幾何 (3題) - 軌道、星球形狀
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "行星圍繞太陽公轉的軌道，比較接近什麼形狀？", options: ["正圓形", "正方形", "橢圓形", "三角形"], correct: 2, type: "geometry", explanation: "根據克卜勒定律，所有行星的軌道都是橢圓形，太陽則位於其中一個焦點上。" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "為什麼大部分的行星和恆星都是球形的？", options: ["因為好看", "為了轉得快", "因為重力從四面八方拉向中心", "巧合"], correct: 2, type: "geometry", explanation: "重力會將物質從所有方向均勻地拉向中心點，最終形成能量最穩定的球形。" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "從地球上看，為什麼月亮🌙有時候是圓的，有時候是彎的？", options: ["月亮會變形", "被雲擋住了", "太陽照射月亮角度不同", "地球的影子"], correct: 2, type: "geometry", explanation: "月相的變化，是因為月球、地球、太陽三者的相對位置改變，導致我們看到月球被太陽照亮的部分不一樣。" },
+            
+            // 應用 (4題) - 太空邏輯
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "太空人去火星探險，需要帶氧氣、水和食物。哪樣東西在火星上「完全沒有」，必須從地球帶去？", options: ["水(有冰)", "食物", "氧氣", "陽光"], correct: 2, type: "application", explanation: "火星大氣非常稀薄且主要是二氧化碳，沒有可供呼吸的氧氣。雖然火星有冰（水），但食物也必須自己帶。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "一艘太空船要從地球飛到木星，中途經過火星。它的飛行順序是什麼？", options: ["地球→木星→火星", "地球→火星→木星", "火星→地球→木星", "木星→火星→地球"], correct: 1, type: "application", explanation: "太陽系行星的順序是：水、金、地、火、木...。所以從地球出發，會先經過火星，才能到達木星。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "如果你的雙胞胎兄弟搭乘接近光速的飛船旅行一年再回來，根據愛因斯坦的理論，誰會比較老？", options: ["你", "你的兄弟", "一樣老", "都會變年輕"], correct: 0, type: "application", explanation: "根據狹義相對論的時間膨脹效應，速度越快，時間流逝得越慢。所以在地球上的你會比進行星際旅行的兄弟老得更多。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "我們晚上看到的星星，有些可能在幾千年前就已經爆炸消失了。這個說法是對的嗎？", options: ["對的，因為光需要時間傳播", "不對，星星不會消失", "不對，我們看到的是即時的", "對的，但只要幾秒鐘"], correct: 0, type: "application", explanation: "完全正確。許多星星距離我們非常遙遠，它們的光需要成千上萬年才能到達地球。我們看到的星空，其實是宇宙的「過去式」。" },
+
+            // 代數 (3題) - 宇宙定律
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "萬有引力的大小，跟兩個物體的「距離」有什麼關係？", options: ["距離越遠，引力越大", "距離越遠，引力越小", "沒有關係", "距離越近，引力越小"], correct: 1, type: "algebra", explanation: "萬有引力的大小與距離的平方成反比。簡單來說，兩個物體離得越遠，它們之間的引力就越弱。" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "宇宙正在膨脹，代表星系之間的距離正在怎麼樣？", options: ["變近", "變遠", "不變", "忽遠忽近"], correct: 1, type: "algebra", explanation: "宇宙膨脹就像一個正在吹大的氣球，氣球表面上任意兩點的距離都在變遠。這就是哈伯定律的觀測結果。" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "愛因斯坦最著名的公式 E=mc² 告訴我們什麼？", options: ["能量守恆", "質量和能量可以互相轉換", "光速是極限", "時間是相對的"], correct: 1, type: "algebra", explanation: "這個公式揭示了宇宙最深刻的奧秘之一：質量(m)和能量(E)是同一事物的不同表現形式，可以互相轉換，其轉換的比例就是光速(c)的平方。" },
+            
+            // 組合 (3題) - 宇宙可能性
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "一個探險隊有4位太空人，每次任務需要2人出艙。總共有幾種不同的兩人組合？", options: ["4種", "6種", "8種", "12種"], correct: 1, type: "combination", explanation: "這是一個組合問題，不考慮順序。答案是 (4x3)/(2x1) = 6種。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "天文學家用3種顏色(紅、綠、藍)來合成彩色星空照片。如果每種顏色都有「開」或「關」兩種選擇，總共可以組合出幾種顏色(包含黑色)？", options: ["3種", "6種", "8種", "9種"], correct: 2, type: "combination", explanation: "每種顏色都有2種可能，三種顏色就是 2 x 2 x 2 = 8種組合。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "宇宙中有數千億個星系，每個星系有數千億顆恆星。你覺得只有地球有生命的可能性高嗎？", options: ["非常高", "非常低", "一定只有地球有", "這是科學問題，不是數學"], correct: 1, type: "combination", explanation: "從機率和統計的角度來看，在如此巨大的樣本空間中，只有一個樣本具備某種特性（生命）的可能性，是極低的。這就是費米悖論所探討的核心。" },
+            
+            // 數感 (3題) - 宇宙尺度
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "「天文數字」這個詞通常用來形容什麼？", options: ["很小的數字", "很精確的數字", "非常非常巨大的數字", "很難算的數字"], correct: 2, type: "number_sense", explanation: "因為宇宙的尺度非常巨大，天文學中使用的數字（如距離、星球數量）也極其龐大，因此「天文數字」就成了巨大數量的代名詞。" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "我們所在的星系叫做什麼？", options: ["太陽系", "仙女座星系", "銀河系", "M87星系"], correct: 2, type: "number_sense", explanation: "太陽系只是銀河系中非常微小的一部分。我們的家，在宇宙中的地址是：地球，太陽系，銀河系。" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "你覺得人類的數學，能完全解釋整個宇宙嗎？", options: ["能", "不能", "快要可以了", "這是一個開放性問題"], correct: 3, type: "number_sense", explanation: "這是一個深刻的哲學與科學問題。雖然數學是我們理解宇宙最強大的工具，但宇宙是否還有數學無法觸及的奧秘？沒有人知道確切的答案。" }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            renderApp(); 
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 3500); 
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 3500);
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            renderApp();
+        }
+
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                }
+            });
+            return results;
+        }
+
+        function renderApp() {
+            document.body.className = 'bg-[#000011]';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-slate-800 bg-opacity-50 border-blue-400 text-white hover:bg-blue-900 hover:border-blue-300 cursor-pointer';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-green-600 border-green-500 text-white';
+                        icon = '<span class="inline-block ml-2">🛰️</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-800 border-red-600 text-white';
+                        icon = '<span class="inline-block ml-2">☄️</span>';
+                    } else {
+                        buttonClass = 'bg-gray-900 border-gray-800 text-gray-500';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-6 rounded-lg option-text font-bold border-4 transition-all duration-300 transform hover:shadow-2xl hover:scale-105 ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-6">
+                        <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-purple-400 to-indigo-300 px-6 py-3 font-bold text-4xl voyager-badge">
+                            🚀 星際探險家 🚀
+                        </span>
+                    </div>
+
+                    <div class="bg-black bg-opacity-30 rounded-full p-2 mb-6">
+                        <div 
+                            class="bg-gradient-to-r from-blue-400 to-purple-500 rounded-full h-4 transition-all duration-500"
+                            style="width: ${((currentQuestionIndex + 1) / questions.length) * 100}%"
+                        ></div>
+                    </div>
+
+                    <div class="text-center text-blue-200 text-xl mb-4">
+                        航行日誌 ${currentQuestionIndex + 1} / ${questions.length}
+                    </div>
+
+                    <div class="bg-slate-900 bg-opacity-80 backdrop-blur-sm rounded-lg shadow-2xl p-6 sm:p-8 border-4 border-blue-500">
+                        <div class="text-center mb-6">
+                            <div class="text-3xl font-bold text-blue-300 mb-4">
+                                ${question.category}
+                            </div>
+                            <div class="question-text font-bold text-white mb-6 min-h-[8rem] flex flex-col items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-8">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2 text-white">
+                                    ${selectedAnswer === question.correct ? "已確認航道！" : "訊號接收異常..."}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-slate-800 bg-opacity-80 rounded-lg p-4 mt-4 border-2 border-blue-700">
+                                        <div class="text-lg font-bold text-blue-300 mb-1">💡 艦長日誌：</div>
+                                        <div class="text-base text-gray-200">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            
+            let resultEmoji = "🧑‍🚀";
+            let resultMessage = "你的思想已航向星辰大海，這趟旅程本身就是最偉大的成就！";
+            let starCount = 4;
+
+            if (scorePercentage >= 0.8) {
+                resultEmoji = "🌌";
+                resultMessage = "任務圓滿成功！你已成為傳奇的星際探險家！";
+                starCount = 5;
+            } else if (scorePercentage >= 0.6) {
+                resultEmoji = "🛰️";
+                resultMessage = "卓越的領航員！你已繪製出通往未知的星圖！";
+                starCount = 4;
+            } else if (scorePercentage >= 0.4) {
+                resultEmoji = "🌠";
+                resultMessage = "勇敢的先行者！你已點燃了探索宇宙的火花！";
+                starCount = 3;
+            }
+
+            const categoryResultsHtml = Object.keys(results).map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", style: "bg-red-900 bg-opacity-50 border-red-700 text-red-200" },
+                    geometry: { name: "🔺 幾何", style: "bg-blue-900 bg-opacity-50 border-blue-700 text-blue-200" },
+                    application: { name: "🛒 應用", style: "bg-green-900 bg-opacity-50 border-green-700 text-green-200" },
+                    algebra: { name: "🎨 代數", style: "bg-purple-900 bg-opacity-50 border-purple-700 text-purple-200" },
+                    combination: { name: "🧩 組合", style: "bg-yellow-900 bg-opacity-50 border-yellow-700 text-yellow-200" },
+                    number_sense: { name: "🔢 數感", style: "bg-pink-900 bg-opacity-50 border-pink-700 text-pink-200" },
+                };
+                const info = categoryMap[key];
+                return `
+                    <div class="${info.style} p-4 rounded-xl border-2">
+                        <div class="text-lg font-bold">${info.name}</div>
+                        <div class="text-xl font-bold">${results[key].correct}/${results[key].total}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const starsHtml = Array(starCount).fill('✨').join(' ');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-slate-900 bg-opacity-80 backdrop-blur-sm rounded-lg shadow-2xl p-8 text-center border-4 border-blue-400">
+                        <div class="text-7xl mb-4">${resultEmoji}</div>
+                        
+                        <h2 class="text-3xl font-bold text-white mb-2">星際探險完成！</h2>
+                        <div class="text-5xl mb-4">${starsHtml}</div>
+                        
+                        <div class="text-2xl font-bold text-blue-300 mb-6">
+                            任務成就：${totalCorrect} / ${totalQuestions}
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-300">
+                            ${resultMessage}
+                        </div>
+
+                        <button
+                            onclick="window.location.href = 'index.html'"
+                            class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xl font-bold py-4 px-8 rounded-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                        >
+                            返回地球 🌍
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        renderApp();
+
+    </script>
+</body>
+</html>

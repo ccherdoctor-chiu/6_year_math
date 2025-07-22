@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六歲數學哲人測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #fdf6e3; /* Parchment color */
+            background-image: url('https://www.transparenttextures.com/patterns/old-wall.png');
+        }
+        #app > div {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .philosopher-badge {
+            animation: gentle-glow 3s infinite alternate;
+        }
+        @keyframes gentle-glow {
+            from {
+                text-shadow: 0 0 5px #d4af37, 0 0 10px #d4af37;
+            }
+            to {
+                text-shadow: 0 0 10px #f7d56e, 0 0 15px #f7d56e;
+            }
+        }
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.5rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2.25rem;
+                line-height: 2.75rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables to manage the quiz
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+
+        // Philosopher level quiz questions for 6-year-olds
+        const questions = [
+            // 計算 (3題) - 運算定律、零的特性
+            { category: "🧮 計算", color: "bg-amber-100 border-amber-300", question: "5 + 8 和 8 + 5 的答案一樣嗎？為什麼？", options: ["一樣，因為順序不重要", "不一樣，數字不同", "不一樣，位置不同", "有時候一樣"], correct: 0, type: "calculation", explanation: "在加法中，數字的順序不影響結果。這稱為「加法交換律」，是數學的一個基本規則。" },
+            { category: "🧮 計算", color: "bg-amber-100 border-amber-300", question: "任何數字乘以 0，答案會是多少？", options: ["等於那個數字", "等於 1", "等於 0", "不一定"], correct: 2, type: "calculation", explanation: "0乘以任何數都等於0。想像一下，你有5個盤子，但每個盤子裡有0個蘋果，那你總共就是0個蘋果。" },
+            { category: "🧮 計算", color: "bg-amber-100 border-amber-300", question: "如果你有 A 袋糖果，每袋有 0 顆，那你總共多少顆？", options: ["20", "10", "0", "30"], correct: 2, type: "calculation", explanation: "0和其他數字相乘等於0。這是一個非常重要的數學概念！" },
+            
+            // 幾何 (3題) - 維度、點線面
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "一條無限長的直線，有幾個「端點」？", options: ["1個", "2個", "無限多個", "0個"], correct: 3, type: "geometry", explanation: "根據定義，直線是向兩個方向無限延伸的，所以它沒有起點，也沒有終點（端點）。" },
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "我們生活在一個幾維的空間裡？", options: ["一維(線)", "二維(平面)", "三維(立體)", "四維(時間)"], correct: 2, type: "geometry", explanation: "我們可以在前後、左右、上下移動，這三個方向構成了我們的三維立體空間。" },
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "在一個球的表面畫一個三角形，它的三個內角加起來會是多少度？", options: ["小於180度", "等於180度", "大於180度", "不一定"], correct: 2, type: "geometry", explanation: "在曲面上，幾何規則會改變！在球面上畫的三角形，內角和會大於180度。這就是非歐幾里得幾何學的奇妙之處！" },
+            
+            // 應用 (4題) - 思想實驗、反事實思考
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "如果時間可以倒流，你會變年輕還是變老？", options: ["變年輕", "變老", "不變", "這問題沒有意義"], correct: 3, type: "application", explanation: "這是一個哲學問題！時間與因果關係緊密相連。這個問題沒有標準答案，旨在激發你對時間本質的思考。" },
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "一艘船換掉了所有的木板，它還是原來那艘船嗎？", options: ["是", "不是", "一部分是", "無法定義"], correct: 3, type: "application", explanation: "這是著名的「忒修斯之船」悖論。它探討了「同一性」的哲學問題，沒有絕對的答案。" },
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "如果沒有人看見樹在森林裡倒下，它有發出聲音嗎？", options: ["有", "沒有", "不知道", "看你如何定義聲音"], correct: 3, type: "application", explanation: "這個問題取決於你對「聲音」的定義。如果聲音是物理的振動，那它有發出聲音。如果聲音需要被「聽到」，那它就沒有。" },
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "你面前有兩扇門，一扇通往天堂，一扇通往地獄。門口有兩個守衛，一個只說真話，一個只說假話。你只能問一個問題，要怎麼問才能找到天堂之門？", options: ["問誰是騙子", "直接猜一扇門", "問『如果我問另一個人天堂在哪，他會指哪扇門？』", "辦不到"], correct: 2, type: "application", explanation: "問這個問題後，無論你問到誰，他指出的都會是地獄之門。所以你只要選擇另一扇門就可以了！" },
+
+            // 代數 (3題) - 變量的本質
+            { category: "🎨 代數", color: "bg-violet-100 border-violet-300", question: "在 X + 5 = 8 中，X 代表什麼？", options: ["一個字母", "一個固定的數字(3)", "一個可以變的數字", "一個錯誤"], correct: 1, type: "algebra", explanation: "在方程式中，X（變量）代表一個目前未知但固定的數值。我們的任務就是找出這個數值。" },
+            { category: "🎨 代數", color: "bg-violet-100 border-violet-300", question: "「一個數字」比「另一個數字」大5。我們可以用代數怎麼表示？", options: ["X = Y", "X > 5", "X = Y + 5", "X + 5 > Y"], correct: 2, type: "algebra", explanation: "這展現了代數如何用符號來表達數量之間的關係。X = Y + 5 精確地描述了這個情況。" },
+            { category: "🎨 代數", color: "bg-violet-100 border-violet-300", question: "為什麼我們需要用 X 或 Y 這些符號？", options: ["因為好看", "為了讓數學變難", "為了代表未知或變化的量", "沒有特別原因"], correct: 2, type: "algebra", explanation: "代數符號是強大的工具，讓我們可以處理未知數，並寫出適用於所有數字的通用規則。" },
+            
+            // 組合 (3題) - 集合論、無限
+            { category: "🧩 組合", color: "bg-orange-100 border-orange-300", question: "所有「奇數」的集合和所有「整數」的集合，哪個包含的數字比較多？", options: ["奇數比較多", "整數比較多", "一樣多", "不能比較"], correct: 2, type: "combination", explanation: "在無限的世界裡，規則很奇妙！我們可以將每個整數都對應到一個奇數(n -> 2n-1)，所以它們被認為是「一樣多」的。這稱為「基數相等」。" },
+            { category: "🧩 組合", color: "bg-orange-100 border-orange-300", question: "一個集合可以包含「所有不包含自己的集合」嗎？", options: ["可以", "不可以", "看情況", "這是個矛盾"], correct: 3, type: "combination", explanation: "這是著名的「羅素悖論」。如果這個集合包含自己，那它就違反了「不包含自己」的規則。如果它不包含自己，那它又符合了被包含的條件。這是一個邏輯上的死胡同！" },
+            { category: "🧩 組合", color: "bg-orange-100 border-orange-300", question: "如果我有無限顆糖果，分給你一半，我的糖果會變少嗎？", options: ["會", "不會", "不知道", "無限不能分"], correct: 1, type: "combination", explanation: "無限減去無限，或者無限除以二，結果仍然是無限。這是無限這個概念最違反直覺也最有趣的地方之一！" },
+            
+            // 數感 (3題) - 數的本質
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "數字是被人們「發明」出來的，還是本來就存在，只是被「發現」？", options: ["發明", "發現", "都有可能", "這不是數學問題"], correct: 2, type: "number_sense", explanation: "這是一個長久以來的哲學辯論！有些人認為數學是宇宙的語言，我們只是發現了它。有些人則認為它是人類為了解釋世界而發明的工具。沒有標準答案。" },
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "π (圓周率) 是一個無限不循環的小數，這代表什麼？", options: ["它是一個錯誤的數字", "我們可以寫出它的所有位數", "我們永遠無法精確地寫完它", "它等於3.14"], correct: 2, type: "number_sense", explanation: "無限不循環代表它的位數永無止境，且沒有重複的規律。我們只能找到它的近似值，但永遠無法寫下它完整的樣貌。" },
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "在 1 和 2 之間，總共有多少個數字？", options: ["0個", "1個 (1.5)", "10個 (1.1, 1.2...)", "無限多個"], correct: 3, type: "number_sense", explanation: "在任何兩個不同的數字之間，都存在著無限多個其他的數字（例如1.1, 1.11, 1.111...）。這顯示了數線的「稠密性」。" }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            renderApp(); 
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 3500); 
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 3500);
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            renderApp();
+        }
+
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                }
+            });
+            return results;
+        }
+
+        function renderApp() {
+            document.body.className = 'bg-[#fdf6e3]';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-[#fdf6e3] border-amber-800 text-amber-900 hover:bg-amber-200 cursor-pointer';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-emerald-600 border-emerald-500 text-white';
+                        icon = '<span class="inline-block ml-2">📜</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-800 border-red-600 text-white';
+                        icon = '<span class="inline-block ml-2">❔</span>';
+                    } else {
+                        buttonClass = 'bg-gray-200 border-gray-400 text-gray-500';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-6 rounded-lg option-text font-bold border-4 transition-all duration-300 transform hover:shadow-xl ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-6">
+                        <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-yellow-500 to-amber-600 px-6 py-3 font-bold text-4xl philosopher-badge">
+                            📜 哲人試煉 📜
+                        </span>
+                    </div>
+
+                    <div class="bg-black bg-opacity-10 rounded-full p-2 mb-6">
+                        <div 
+                            class="bg-gradient-to-r from-amber-600 to-yellow-500 rounded-full h-4 transition-all duration-500"
+                            style="width: ${((currentQuestionIndex + 1) / questions.length) * 100}%"
+                        ></div>
+                    </div>
+
+                    <div class="text-center text-amber-800 text-xl mb-4">
+                        第 ${currentQuestionIndex + 1} 則 / 共 ${questions.length} 則
+                    </div>
+
+                    <div class="bg-white bg-opacity-60 backdrop-blur-sm rounded-lg shadow-2xl p-6 sm:p-8 border-4 border-amber-700">
+                        <div class="text-center mb-6">
+                            <div class="text-3xl font-bold text-amber-800 mb-4">
+                                ${question.category}
+                            </div>
+                            <div class="question-text font-bold text-gray-800 mb-6 min-h-[8rem] flex flex-col items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-8">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2 text-amber-900">
+                                    ${selectedAnswer === question.correct ? "智慧之光閃耀！" : "一個偉大的問題！"}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-amber-100 bg-opacity-80 rounded-lg p-4 mt-4 border-2 border-amber-300">
+                                        <div class="text-lg font-bold text-amber-800 mb-1">💡 哲人解析：</div>
+                                        <div class="text-base text-amber-900">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            
+            let resultEmoji = "🤔";
+            let resultMessage = "你已踏上追尋智慧的永恆之路，答案並非終點。";
+            let starCount = 4;
+
+            if (scorePercentage >= 0.8) {
+                resultEmoji = "🦉";
+                resultMessage = "超凡的洞察力！你擁有哲人的靈魂！";
+                starCount = 5;
+            } else if (scorePercentage >= 0.6) {
+                resultEmoji = "📜";
+                resultMessage = "卓越的思考者！你已掌握了深度問題的鑰匙！";
+                starCount = 4;
+            } else if (scorePercentage >= 0.4) {
+                resultEmoji = "✒️";
+                resultMessage = "偉大的提問者！你提出的問題比答案更重要！";
+                starCount = 3;
+            }
+
+            const categoryResultsHtml = Object.keys(results).map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", style: "bg-amber-200 border-amber-400 text-amber-900" },
+                    geometry: { name: "🔺 幾何", style: "bg-cyan-200 border-cyan-400 text-cyan-900" },
+                    application: { name: "🛒 應用", style: "bg-lime-200 border-lime-400 text-lime-900" },
+                    algebra: { name: "� 代數", style: "bg-violet-200 border-violet-400 text-violet-900" },
+                    combination: { name: "🧩 組合", style: "bg-orange-200 border-orange-400 text-orange-900" },
+                    number_sense: { name: "🔢 數感", style: "bg-rose-200 border-rose-400 text-rose-900" },
+                };
+                const info = categoryMap[key];
+                return `
+                    <div class="${info.style} p-4 rounded-xl border-2">
+                        <div class="text-lg font-bold">${info.name}</div>
+                        <div class="text-xl font-bold">${results[key].correct}/${results[key].total}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const starsHtml = Array(starCount).fill('✒️').join(' ');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white bg-opacity-70 backdrop-blur-sm rounded-lg shadow-2xl p-8 text-center border-4 border-amber-600">
+                        <div class="text-7xl mb-4">${resultEmoji}</div>
+                        
+                        <h2 class="text-3xl font-bold text-amber-900 mb-2">哲人試煉完成！</h2>
+                        <div class="text-5xl mb-4">${starsHtml}</div>
+                        
+                        <div class="text-2xl font-bold text-amber-800 mb-6">
+                            答對題數：${totalCorrect} / ${totalQuestions}
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-700">
+                            ${resultMessage}
+                        </div>
+
+                        <button
+                            onclick="restartQuiz()"
+                            class="bg-gradient-to-r from-amber-700 to-yellow-600 text-white text-xl font-bold py-4 px-8 rounded-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                        >
+                            再次沉思 📜
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        renderApp();
+
+    </script>
+</body>
+</html>
+�

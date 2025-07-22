@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六歲數學建築師測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0d1b2a; /* Deep blue background */
+        }
+        #app > div {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .architect-badge {
+            animation: blueprint-glow 3s infinite alternate;
+        }
+        @keyframes blueprint-glow {
+            from {
+                text-shadow: 0 0 5px #60a5fa, 0 0 10px #60a5fa;
+            }
+            to {
+                text-shadow: 0 0 10px #93c5fd, 0 0 15px #93c5fd;
+            }
+        }
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.5rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2.25rem;
+                line-height: 2.75rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables to manage the quiz
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+
+        // Architect level quiz questions for 6-year-olds
+        const questions = [
+            // 計算 (3題) - 面積、周長
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "一個長方形房間，長5公尺，寬4公尺，鋪滿地磚需要多少平方公尺的地磚？", options: ["9平方公尺", "18平方公尺", "20平方公尺", "25平方公尺"], correct: 2, type: "calculation", explanation: "房間的面積是 長 x 寬。所以 5 x 4 = 20 平方公尺。這就是計算面積的公式！" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "一個正方形花園，每邊長6公尺，要用柵欄圍起來，總共需要多長的柵欄？", options: ["12公尺", "18公尺", "24公尺", "36公尺"], correct: 2, type: "calculation", explanation: "正方形有4條一樣長的邊，所以周長是 6 x 4 = 24 公尺。" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "蓋一面牆需要100塊磚頭🧱，工人已經用了65塊，還需要多少塊？", options: ["25塊", "35塊", "45塊", "165塊"], correct: 1, type: "calculation", explanation: "這是一個減法問題：100 - 65 = 35 塊。還需要35塊磚頭才能完成牆壁。" },
+            
+            // 幾何 (3題) - 視圖、對稱、3D結構
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "從正上方看一個金字塔，你會看到什麼形狀？", options: ["一個三角形", "一個圓形", "一個帶有對角線的正方形", "一個點"], correct: 2, type: "geometry", explanation: "從正上方看，你會看到金字塔的方形底座，以及從四個角連到頂點的斜邊，看起來就像有對角線的正方形。" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "一座橋樑的設計通常是左右對稱的，這是為了什麼？", options: ["比較好看", "節省材料", "讓力量均勻分佈，更穩固", "方便車輛通行"], correct: 2, type: "geometry", explanation: "對稱的結構可以讓橋樑兩側受力均勻，這樣會更安全、更穩固。美觀也是一個原因，但穩固是首要考量！" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "用8個一樣的小正方體，可以組成一個更大的實心正方體。這個大正方體有多少個面是「看不到」的？", options: ["0個", "8個", "12個", "24個"], correct: 0, type: "geometry", explanation: "這題有點 tricky！因為是實心的，所有小正方體的面都在內部互相貼合，或者朝外。沒有任何一個面是完全被包在裡面而看不到的。" },
+            
+            // 應用 (4題) - 結構邏輯、資源規劃
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "蓋房子要先蓋地基還是先蓋屋頂？", options: ["先蓋屋頂", "先蓋地基", "一起蓋", "都可以"], correct: 1, type: "application", explanation: "蓋任何建築物都要從最下面開始，穩固的地基才能支撐起整棟房子。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "有三種窗戶：圓形⚪、方形⬜、三角形🔺。如果牆壁上已經有一個方形窗戶，旁邊再開一個窗戶，為了讓牆壁看起來最「和諧」，你會選哪個？", options: ["圓形", "方形", "三角形", "都可以"], correct: 1, type: "application", explanation: "在設計中，「重複」是一種創造和諧與規律感的方法。使用相同的方形窗戶會讓視覺上更統一、更和諧。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "一個工人一天可以漆3面牆，現在有10面牆要漆，需要幾個工人才可以在「一天內」完成？", options: ["3個", "4個", "5個", "10個"], correct: 1, type: "application", explanation: "1個工人漆3面，2個漆6面，3個漆9面。所以需要第4個工人來漆最後一面牆，才能在一天內完成。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "建築師畫藍圖時，把10公尺的牆畫成10公分。那5公尺的門應該畫成幾公分？", options: ["1公分", "2公分", "5公分", "10公分"], correct: 2, type: "application", explanation: "這就是比例尺的概念！牆的長度縮小了一半（10公尺 -> 5公尺），所以圖上的長度也要縮小一半（10公分 -> 5公分）。" },
+
+            // 代數 (3題) - 比例、簡單公式
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "如果蓋一層樓需要5噸鋼筋，蓋 N 層樓需要多少噸？", options: ["5 + N", "5 x N", "N - 5", "5 / N"], correct: 1, type: "algebra", explanation: "這是一個簡單的線性關係。需要的鋼筋總量 = 每層的量 x 樓層數。用代數表示就是 5N。" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "一個房間的長度是 L，寬度是 W。它的面積公式 A 是什麼？", options: ["A = L + W", "A = 2L + 2W", "A = L x W", "A = L - W"], correct: 2, type: "algebra", explanation: "長方形的面積公式是 長乘以寬，這是所有建築師和設計師都必須知道的基本公式！" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "一棟建築的高度 H 是樓層數 F 和每層樓高度 h 的乘積。哪個公式是對的？", options: ["H = F + h", "F = H x h", "H = F / h", "H = F x h"], correct: 3, type: "algebra", explanation: "總高度等於樓層數乘以每層的高度，這個邏輯關係可以用公式 H = F x h 來精確表達。" },
+            
+            // 組合 (3題) - 空間佈局
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "有客廳、廚房、臥室三個房間要排成一排，有幾種不同的排列方式？", options: ["3種", "4種", "5種", "6種"], correct: 3, type: "combination", explanation: "這是一個排列問題。第一個位置有3種選擇，第二個有2種，最後1種。總共 3 x 2 x 1 = 6種。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "要用紅、藍、黃三種顏色漆一個三層的蛋糕建築，每層顏色都不同，有幾種漆法？", options: ["3種", "6種", "9種", "12種"], correct: 1, type: "combination", explanation: "跟上題一樣！第一層有3種顏色可選，第二層剩2種，第三層剩1種。總共 3 x 2 x 1 = 6種。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "用兩種不同的磁磚(例如：⬛和⬜)鋪滿一個2x2的地板，有幾種方法？(旋轉後一樣算同一種)", options: ["4種", "5種", "6種", "7種"], correct: 2, type: "combination", explanation: "這題非常難！需要畫圖和分類。答案是6種。能想到這裡已經是建築大師了！" },
+            
+            // 數感 (3題) - 估算、單位
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "一棟10層樓的公寓，大約有多高？", options: ["3公尺", "30公尺", "300公尺", "3公里"], correct: 1, type: "number_sense", explanation: "一層樓大約3公尺高，所以10層樓大約是 10 x 3 = 30公尺。這就是建築師的估算能力！" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "測量一個房間的長度，用哪個單位最適合？", options: ["公分(cm)", "公尺(m)", "公里(km)", "毫米(mm)"], correct: 1, type: "number_sense", explanation: "公尺是測量房間、建築物大小最常用的單位。用公分或毫米會數字太大，用公里又太小了。" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "一個設計圖上，柱子看起來比樑木粗。在真實世界裡，通常是哪個比較粗？", options: ["柱子", "樑木", "一樣粗", "看情況"], correct: 0, type: "number_sense", explanation: "柱子(垂直的)需要支撐整棟建築的重量，所以通常會比樑木(水平的)更粗壯、更堅固。" }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            renderApp(); 
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 3000); 
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 3000);
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            renderApp();
+        }
+
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                }
+            });
+            return results;
+        }
+
+        function renderApp() {
+            document.body.className = 'bg-[#0d1b2a]';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-slate-700 bg-opacity-50 border-cyan-400 text-white hover:bg-cyan-900 hover:border-cyan-300 cursor-pointer';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-green-500 border-green-400 text-white';
+                        icon = '<span class="inline-block ml-2">📐</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-800 border-red-600 text-white';
+                        icon = '<span class="inline-block ml-2">❌</span>';
+                    } else {
+                        buttonClass = 'bg-gray-800 border-gray-700 text-gray-500';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-6 rounded-lg option-text font-bold border-4 transition-all duration-300 transform hover:shadow-xl hover:scale-105 ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-6">
+                        <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-cyan-200 px-6 py-3 font-bold text-4xl architect-badge">
+                            📐 建築師藍圖 📐
+                        </span>
+                    </div>
+
+                    <div class="bg-black bg-opacity-20 rounded-full p-2 mb-6">
+                        <div 
+                            class="bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full h-4 transition-all duration-500"
+                            style="width: ${((currentQuestionIndex + 1) / questions.length) * 100}%"
+                        ></div>
+                    </div>
+
+                    <div class="text-center text-cyan-200 text-xl mb-4">
+                        設計圖 ${currentQuestionIndex + 1} / ${questions.length}
+                    </div>
+
+                    <div class="bg-slate-800 bg-opacity-80 backdrop-blur-sm rounded-lg shadow-2xl p-6 sm:p-8 border-4 border-cyan-500">
+                        <div class="text-center mb-6">
+                            <div class="text-3xl font-bold text-cyan-300 mb-4">
+                                ${question.category}
+                            </div>
+                            <div class="question-text font-bold text-white mb-6 min-h-[8rem] flex flex-col items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-8">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2 text-white">
+                                    ${selectedAnswer === question.correct ? "完美的結構！" : "需要重新計算..."}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-slate-900 bg-opacity-80 rounded-lg p-4 mt-4 border-2 border-cyan-700">
+                                        <div class="text-lg font-bold text-cyan-300 mb-1">💡 建築師筆記：</div>
+                                        <div class="text-base text-gray-200">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            
+            let resultEmoji = "🤔";
+            let resultMessage = "你的設計藍圖充滿了潛力與智慧！";
+            let starCount = 4;
+
+            if (scorePercentage >= 0.8) {
+                resultEmoji = "🏗️";
+                resultMessage = "一座數學的摩天大樓已由你建成！你是建築大師！";
+                starCount = 5;
+            } else if (scorePercentage >= 0.6) {
+                resultEmoji = "🏛️";
+                resultMessage = "卓越的設計！你的結構思維無懈可擊！";
+                starCount = 4;
+            } else if (scorePercentage >= 0.4) {
+                resultEmoji = "🧱";
+                resultMessage = "穩固的基礎！你已掌握了建築數學的核心！";
+                starCount = 3;
+            }
+
+            const categoryResultsHtml = Object.keys(results).map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", style: "bg-red-900 bg-opacity-50 border-red-700 text-red-200" },
+                    geometry: { name: "🔺 幾何", style: "bg-blue-900 bg-opacity-50 border-blue-700 text-blue-200" },
+                    application: { name: "🛒 應用", style: "bg-green-900 bg-opacity-50 border-green-700 text-green-200" },
+                    algebra: { name: "🎨 代數", style: "bg-purple-900 bg-opacity-50 border-purple-700 text-purple-200" },
+                    combination: { name: "🧩 組合", style: "bg-yellow-900 bg-opacity-50 border-yellow-700 text-yellow-200" },
+                    number_sense: { name: "🔢 數感", style: "bg-pink-900 bg-opacity-50 border-pink-700 text-pink-200" },
+                };
+                const info = categoryMap[key];
+                return `
+                    <div class="${info.style} p-4 rounded-xl border-2">
+                        <div class="text-lg font-bold">${info.name}</div>
+                        <div class="text-xl font-bold">${results[key].correct}/${results[key].total}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const starsHtml = Array(starCount).fill('🏛️').join(' ');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-slate-800 bg-opacity-80 backdrop-blur-sm rounded-lg shadow-2xl p-8 text-center border-4 border-cyan-400">
+                        <div class="text-7xl mb-4">${resultEmoji}</div>
+                        
+                        <h2 class="text-3xl font-bold text-white mb-2">建築師試煉完成！</h2>
+                        <div class="text-5xl mb-4">${starsHtml}</div>
+                        
+                        <div class="text-2xl font-bold text-cyan-300 mb-6">
+                            最終得分：${totalCorrect} / ${totalQuestions}
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-300">
+                            ${resultMessage}
+                        </div>
+
+                        <button
+                            onclick="restartQuiz()"
+                            class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xl font-bold py-4 px-8 rounded-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                        >
+                            開啟新藍圖 🏗️
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        renderApp();
+
+    </script>
+</body>
+</html>

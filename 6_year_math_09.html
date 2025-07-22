@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六歲數學作曲家測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #1a1a1a; /* Dark charcoal background */
+            background-image: url('https://www.transparenttextures.com/patterns/dark-denim-3.png');
+        }
+        #app > div {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .composer-badge {
+            animation: score-glow 3s infinite alternate;
+        }
+        @keyframes score-glow {
+            from {
+                text-shadow: 0 0 5px #fef08a, 0 0 10px #fef08a;
+            }
+            to {
+                text-shadow: 0 0 10px #fde047, 0 0 15px #fde047;
+            }
+        }
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.5rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2.25rem;
+                line-height: 2.75rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables to manage the quiz
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+
+        // Composer level quiz questions for 6-year-olds
+        const questions = [
+            // 計算 (3題) - 節拍、音符時值
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "一個全音符🎵等於4拍。一個半音符等於2拍。一個全音符可以換成幾個半音符？", options: ["1個", "2個", "3個", "4個"], correct: 1, type: "calculation", explanation: "一個全音符是4拍，一個半音符是2拍。 4 ÷ 2 = 2。所以一個全音符等於兩個半音符的長度。" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "在4/4拍的音樂中，一個小節有4拍。如果小節裡已經有一個持續3拍的音符，還能放進一個幾拍的音符？", options: ["1拍", "2拍", "3拍", "4拍"], correct: 0, type: "calculation", explanation: "一個小節總共4拍。用掉3拍後，還剩下 4 - 3 = 1拍。" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "一首歌曲的速度是每分鐘60拍。這首歌演奏了2分鐘，總共演奏了多少拍？", options: ["60拍", "80拍", "100拍", "120拍"], correct: 3, type: "calculation", explanation: "每分鐘60拍，演奏2分鐘，就是 60 x 2 = 120拍。" },
+            
+            // 幾何 (3題) - 樂器形狀、樂譜圖形
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "鋼琴🎹的黑鍵是怎麼排列的？", options: ["全部連在一起", "2個一組，3個一組", "3個一組，4個一組", "都一樣隔開"], correct: 1, type: "geometry", explanation: "鋼琴的黑鍵是按照「兩個一組」和「三個一組」的規律重複排列的，這有助於音樂家快速找到音的位置。" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "哪種樂器的主要發聲部分是長長的「直線」？", options: ["鼓🥁", "吉他🎸", "鋼琴🎹", "小號🎺"], correct: 1, type: "geometry", explanation: "吉他、鋼琴都是靠拉緊的「弦」(線)振動來發聲的。" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "五線譜本身是由什麼組成的？", options: ["五個點", "五條平行的直線", "五個圓圈", "五個三角形"], correct: 1, type: "geometry", explanation: "五線譜，顧名思義，就是由五條互相平行的直線所構成的，音符就記錄在這些線和間上。" },
+            
+            // 應用 (4題) - 音樂邏輯
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "一首歌的歌詞有4段，每段有5句。這首歌總共有幾句歌詞？", options: ["9句", "15句", "20句", "25句"], correct: 2, type: "application", explanation: "這是一個乘法應用題：4段 x 5句/段 = 20句。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "樂團裡有弦樂、管樂和打擊樂。大提琴🎻應該坐在哪個區域？", options: ["弦樂區", "管樂區", "打擊樂區", "指揮台"], correct: 0, type: "application", explanation: "大提琴、小提琴、中提琴等都是靠弦振動發聲的，屬於弦樂器。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "作曲家想寫一首「快樂」的歌，他通常會選擇什麼樣的速度？", options: ["非常慢", "慢板", "中板", "快板"], correct: 3, type: "application", explanation: "通常，快板的音樂（速度快）更容易表現出快樂、活潑的情緒，而慢板音樂則較為抒情或悲傷。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "一場音樂會從晚上7點開始，全長90分鐘，結束時是幾點？", options: ["7點90分", "8點整", "8點半", "9點整"], correct: 2, type: "application", explanation: "90分鐘等於1個小時又30分鐘。所以從7點開始，經過1小時是8點，再加30分鐘就是8點半。" },
+
+            // 代數 (3題) - 音階、模式
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "音階Do, Re, Mi, Fa, Sol, La, Si是一個重複的序列。在Si之後是什麼音？", options: ["Do", "Re", "Mi", "Fa"], correct: 0, type: "algebra", explanation: "音階是一個循環的模式，當唱完Si之後，就會回到更高音的Do，開始新的一輪。" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "如果一個音的頻率是 F，高八度的音頻率是 2F。那比 2F 再高八度的音頻率是多少？", options: ["2F + 8", "3F", "4F", "F x F"], correct: 2, type: "algebra", explanation: "每高一個八度，頻率就加倍。所以 2F 再加倍就是 2F x 2 = 4F。" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "一首歌曲的結構是 A-B-A-C-A。如果用X代表A段，Y代表B段，Z代表C段，這個結構可以寫成？", options: ["X-Y-Z", "X-Y-X-Z-X", "A-B-A-C-A", "XYZ-X"], correct: 1, type: "algebra", explanation: "這就是用代數符號來表示音樂的曲式結構，讓我們能更清晰地分析樂曲。" },
+            
+            // 組合 (3題) - 音樂創作
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "作曲家只有Do, Re, Mi三個音可以用，他想寫一個由2個不同音符組成的樂句，有幾種組合？", options: ["3種", "4種", "5種", "6種"], correct: 3, type: "combination", explanation: "可能的組合有：Do-Re, Do-Mi, Re-Do, Re-Mi, Mi-Do, Mi-Re。總共6種。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "一個和弦由3個音組成。如果從5個不同的音中挑選3個音來組成和弦，這屬於數學的哪個領域？", options: ["加法", "減法", "幾何", "組合學"], correct: 3, type: "combination", explanation: "從一個群體中挑選部分成員進行組合，這是組合學（Combinatorics）研究的核心問題。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "有4位演奏家(A,B,C,D)，要安排他們上台的順序，有幾種不同的排法？", options: ["4種", "12種", "16種", "24種"], correct: 3, type: "combination", explanation: "這是階乘的計算！第一個上台的有4種選擇，第二個剩3種，第三個剩2種，最後1種。總共 4 x 3 x 2 x 1 = 24種。" },
+            
+            // 數感 (3題) - 音高、音量
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "一個音聽起來很「高」，代表它的頻率是高還是低？", options: ["高", "低", "不一定", "跟頻率無關"], correct: 0, type: "number_sense", explanation: "音高是由聲波的頻率決定的。頻率越高，我們聽到的音就越高。" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "樂譜上的「p」代表弱(piano)，「f」代表強(forte)。哪個音的音量比較大？", options: ["p", "f", "一樣大", "無法比較"], correct: 1, type: "number_sense", explanation: "在音樂術語中，f (forte) 代表強，p (piano) 代表弱。所以標示 f 的音符要演奏得比較大聲。" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "哪種樂器可能發出最低的音？", options: ["短笛", "小提琴", "低音大提琴", "三角鐵"], correct: 2, type: "number_sense", explanation: "通常，樂器的體積越大、弦或空氣柱越長，發出的音就越低。低音大提琴是弦樂器中體積最大、音域最低的。" }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            renderApp(); 
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 3000); 
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 3000);
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            renderApp();
+        }
+
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                }
+            });
+            return results;
+        }
+
+        function renderApp() {
+            document.body.className = 'bg-[#1a1a1a]';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-stone-700 bg-opacity-50 border-amber-400 text-white hover:bg-amber-900 hover:border-amber-300 cursor-pointer';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-green-600 border-green-500 text-white';
+                        icon = '<span class="inline-block ml-2">🎼</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-800 border-red-600 text-white';
+                        icon = '<span class="inline-block ml-2">❌</span>';
+                    } else {
+                        buttonClass = 'bg-gray-800 border-gray-700 text-gray-500';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-6 rounded-lg option-text font-bold border-4 transition-all duration-300 transform hover:shadow-2xl hover:scale-105 ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-6">
+                        <span class="inline-block bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-200 px-6 py-3 font-bold text-4xl composer-badge">
+                            🎼 作曲家樂章 🎼
+                        </span>
+                    </div>
+
+                    <div class="bg-black bg-opacity-20 rounded-full p-2 mb-6">
+                        <div 
+                            class="bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full h-4 transition-all duration-500"
+                            style="width: ${((currentQuestionIndex + 1) / questions.length) * 100}%"
+                        ></div>
+                    </div>
+
+                    <div class="text-center text-amber-200 text-xl mb-4">
+                        樂章 ${currentQuestionIndex + 1} / ${questions.length}
+                    </div>
+
+                    <div class="bg-stone-800 bg-opacity-80 backdrop-blur-sm rounded-lg shadow-2xl p-6 sm:p-8 border-4 border-amber-500">
+                        <div class="text-center mb-6">
+                            <div class="text-3xl font-bold text-amber-300 mb-4">
+                                ${question.category}
+                            </div>
+                            <div class="question-text font-bold text-white mb-6 min-h-[8rem] flex flex-col items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-8">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2 text-white">
+                                    ${selectedAnswer === question.correct ? "和諧的樂音！" : "一個不和諧音..."}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-stone-900 bg-opacity-80 rounded-lg p-4 mt-4 border-2 border-amber-700">
+                                        <div class="text-lg font-bold text-amber-300 mb-1">💡 作曲家解析：</div>
+                                        <div class="text-base text-gray-200">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            
+            let resultEmoji = "🤔";
+            let resultMessage = "你的樂曲充滿了數學的智慧與美感！";
+            let starCount = 4;
+
+            if (scorePercentage >= 0.8) {
+                resultEmoji = "🎶";
+                resultMessage = "一首完美的交響樂！你是音樂數學的大師！";
+                starCount = 5;
+            } else if (scorePercentage >= 0.6) {
+                resultEmoji = "🎵";
+                resultMessage = "華麗的樂章！你已譜出數學與藝術的結合！";
+                starCount = 4;
+            } else if (scorePercentage >= 0.4) {
+                resultEmoji = "🎼";
+                resultMessage = "和諧的旋律！你已掌握了音樂中的數學規律！";
+                starCount = 3;
+            }
+
+            const categoryResultsHtml = Object.keys(results).map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", style: "bg-red-900 bg-opacity-50 border-red-700 text-red-200" },
+                    geometry: { name: "🔺 幾何", style: "bg-blue-900 bg-opacity-50 border-blue-700 text-blue-200" },
+                    application: { name: "🛒 應用", style: "bg-green-900 bg-opacity-50 border-green-700 text-green-200" },
+                    algebra: { name: "🎨 代數", style: "bg-purple-900 bg-opacity-50 border-purple-700 text-purple-200" },
+                    combination: { name: "🧩 組合", style: "bg-yellow-900 bg-opacity-50 border-yellow-700 text-yellow-200" },
+                    number_sense: { name: "🔢 數感", style: "bg-pink-900 bg-opacity-50 border-pink-700 text-pink-200" },
+                };
+                const info = categoryMap[key];
+                return `
+                    <div class="${info.style} p-4 rounded-xl border-2">
+                        <div class="text-lg font-bold">${info.name}</div>
+                        <div class="text-xl font-bold">${results[key].correct}/${results[key].total}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const starsHtml = Array(starCount).fill('🎶').join(' ');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-stone-800 bg-opacity-80 backdrop-blur-sm rounded-lg shadow-2xl p-8 text-center border-4 border-amber-400">
+                        <div class="text-7xl mb-4">${resultEmoji}</div>
+                        
+                        <h2 class="text-3xl font-bold text-white mb-2">作曲家試煉完成！</h2>
+                        <div class="text-5xl mb-4">${starsHtml}</div>
+                        
+                        <div class="text-2xl font-bold text-amber-300 mb-6">
+                            最終得分：${totalCorrect} / ${totalQuestions}
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-300">
+                            ${resultMessage}
+                        </div>
+
+                        <button
+                            onclick="restartQuiz()"
+                            class="bg-gradient-to-r from-amber-500 to-yellow-600 text-black text-xl font-bold py-4 px-8 rounded-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                        >
+                            再作一首 🎼
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        renderApp();
+
+    </script>
+</body>
+</html>
