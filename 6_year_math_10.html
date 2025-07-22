@@ -77,7 +77,7 @@
             { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "從地球上看，為什麼月亮🌙有時候是圓的，有時候是彎的？", options: ["月亮會變形", "被雲擋住了", "太陽照射月亮角度不同", "地球的影子"], correct: 2, type: "geometry", explanation: "月相的變化，是因為月球、地球、太陽三者的相對位置改變，導致我們看到月球被太陽照亮的部分不一樣。" },
             
             // 應用 (4題) - 太空邏輯
-            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "太空人去火星探險，需要帶氧氣、水和食物。哪樣東西在火星上「完全沒有」，必須從地球帶去？", options: ["水(有冰)", "食物", "氧氣", "陽光"], correct: 2, type: "application", explanation: "火星大氣非常稀薄且主要是二氧化碳，沒有可供呼吸的氧氣。雖然火星有冰（水），但食物也必須自己帶。" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "太空人去火星探險，需要帶氧氣、水和石頭。哪樣東西在火星上「完全沒有」，必須從地球帶去？", options: ["水(有冰)", "石頭", "氧氣", "陽光"], correct: 2, type: "application", explanation: "火星大氣非常稀薄且主要是二氧化碳，沒有可供呼吸的氧氣。雖然火星有冰（水），火星有石頭。" },
             { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "一艘太空船要從地球飛到木星，中途經過火星。它的飛行順序是什麼？", options: ["地球→木星→火星", "地球→火星→木星", "火星→地球→木星", "木星→火星→地球"], correct: 1, type: "application", explanation: "太陽系行星的順序是：水、金、地、火、木...。所以從地球出發，會先經過火星，才能到達木星。" },
             { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "如果你的雙胞胎兄弟搭乘接近光速的飛船旅行一年再回來，根據愛因斯坦的理論，誰會比較老？", options: ["你", "你的兄弟", "一樣老", "都會變年輕"], correct: 0, type: "application", explanation: "根據狹義相對論的時間膨脹效應，速度越快，時間流逝得越慢。所以在地球上的你會比進行星際旅行的兄弟老得更多。" },
             { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "我們晚上看到的星星，有些可能在幾千年前就已經爆炸消失了。這個說法是對的嗎？", options: ["對的，因為光需要時間傳播", "不對，星星不會消失", "不對，我們看到的是即時的", "對的，但只要幾秒鐘"], correct: 0, type: "application", explanation: "完全正確。許多星星距離我們非常遙遠，它們的光需要成千上萬年才能到達地球。我們看到的星空，其實是宇宙的「過去式」。" },
@@ -90,7 +90,7 @@
             // 組合 (3題) - 宇宙可能性
             { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "一個探險隊有4位太空人，每次任務需要2人出艙。總共有幾種不同的兩人組合？", options: ["4種", "6種", "8種", "12種"], correct: 1, type: "combination", explanation: "這是一個組合問題，不考慮順序。答案是 (4x3)/(2x1) = 6種。" },
             { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "天文學家用3種顏色(紅、綠、藍)來合成彩色星空照片。如果每種顏色都有「開」或「關」兩種選擇，總共可以組合出幾種顏色(包含黑色)？", options: ["3種", "6種", "8種", "9種"], correct: 2, type: "combination", explanation: "每種顏色都有2種可能，三種顏色就是 2 x 2 x 2 = 8種組合。" },
-            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "宇宙中有數千億個星系，每個星系有數千億顆恆星。你覺得只有地球有生命的可能性高嗎？", options: ["非常高", "非常低", "一定只有地球有", "這是科學問題，不是數學"], correct: 1, type: "combination", explanation: "從機率和統計的角度來看，在如此巨大的樣本空間中，只有一個樣本具備某種特性（生命）的可能性，是極低的。這就是費米悖論所探討的核心。" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "宇宙中有數千億個星系，每個星系有數千億顆恆星。你覺得只有地球有生命的可能性高嗎？", options: ["非常高", "非常低", "一定只有地球有", "找到外星人再來談"], correct: 1, type: "combination", explanation: "從機率和統計的角度來看，在如此巨大的樣本空間中，只有一個樣本具備某種特性（生命）的可能性，是極低的。這就是費米悖論所探討的核心。" },
             
             // 數感 (3題) - 宇宙尺度
             { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "「天文數字」這個詞通常用來形容什麼？", options: ["很小的數字", "很精確的數字", "非常非常巨大的數字", "很難算的數字"], correct: 2, type: "number_sense", explanation: "因為宇宙的尺度非常巨大，天文學中使用的數字（如距離、星球數量）也極其龐大，因此「天文數字」就成了巨大數量的代名詞。" },
