@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>七歲數學冒險島</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        /* Island theme animations */
+        #app > div {
+            animation: waveIn 0.8s ease-out;
+        }
+        @keyframes waveIn {
+            0% { opacity: 0; transform: translateY(30px) scale(0.9); }
+            50% { transform: translateY(-10px) scale(1.02); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* Wave animation for water effect */
+        .wave {
+            animation: wave 3s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-10px) translateY(-5px); }
+            75% { transform: translateX(10px) translateY(5px); }
+        }
+        /* Treasure chest sparkle */
+        .sparkle-treasure {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; filter: brightness(1); }
+            50% { opacity: 0.8; filter: brightness(1.3); }
+        }
+        /* Boat floating animation */
+        .boat-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        /* Palm tree sway */
+        .palm-sway {
+            animation: sway 5s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        @keyframes sway {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        /* Question and option text sizes */
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.25rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2rem;
+                line-height: 2.5rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+        /* Coin spin animation */
+        .coin-spin {
+            animation: coinSpin 2s linear infinite;
+        }
+        @keyframes coinSpin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        /* Island gradient background */
+        .island-bg {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 40%, #F5DEB3 70%, #D2B48C 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+        let startTime = Date.now();
+        let treasureCoins = 0; // 收集的寶藏金幣
+        let islandProgress = 0; // 島嶼探索進度
+
+        // Adventure-themed questions
+        const questions = [
+            // 計算 (4題) - 海盜寶藏主題
+            { category: "🧮 計算", color: "bg-yellow-100 border-yellow-400", question: "海盜找到28個金幣，又找到16個，總共有幾個？", options: ["42", "43", "44", "45"], correct: 2, type: "calculation", explanation: "28 + 16 = 28 + 10 + 6 = 38 + 6 = 44個金幣！💰", coins: 3 },
+            { category: "🧮 計算", color: "bg-yellow-100 border-yellow-400", question: "寶箱裡有63顆珍珠，送給朋友25顆，還剩幾顆？", options: ["36", "37", "38", "39"], correct: 2, type: "calculation", explanation: "63 - 25 = 63 - 20 - 5 = 43 - 5 = 38顆珍珠！💎", coins: 3 },
+            { category: "🧮 計算", color: "bg-yellow-100 border-yellow-400", question: "每艘船載7個人，4艘船共載幾人？", options: ["26", "27", "28", "29"], correct: 2, type: "calculation", explanation: "7 × 4 = 7 + 7 + 7 + 7 = 28人！⛵", coins: 3 },
+            { category: "🧮 計算", color: "bg-yellow-100 border-yellow-400", question: "島上原有45隻猴子，走了一些後剩29隻，走了幾隻？", options: ["14", "15", "16", "17"], correct: 2, type: "calculation", explanation: "45 - ? = 29，所以 ? = 45 - 29 = 16隻！🐒", coins: 3 },
+            
+            // 幾何 (4題) - 島嶼地圖主題
+            { category: "🔺 幾何", color: "bg-green-100 border-green-400", question: "寶藏地圖是什麼形狀？（提示：有4條相等的邊）", options: ["長方形", "正方形", "三角形", "圓形"], correct: 1, type: "geometry", explanation: "正方形的4條邊都一樣長，像完美的寶藏地圖！🗺️", coins: 2 },
+            { category: "🔺 幾何", color: "bg-green-100 border-green-400", question: "從小島最高的山頂往下看，看到的島嶼邊緣像什麼形狀？", options: ["正方形", "三角形", "圓形", "星形"], correct: 2, type: "geometry", explanation: "小島從上往下看通常是圓形或橢圓形！🏝️", coins: 2 },
+            { category: "🔺 幾何", color: "bg-green-100 border-green-400", question: "搭帳篷需要幾根支柱才最穩？（提示：三角形）", options: ["2根", "3根", "4根", "5根"], correct: 1, type: "geometry", explanation: "3根支柱形成三角形，是最穩固的結構！⛺", coins: 2 },
+            { category: "🔺 幾何", color: "bg-green-100 border-green-400", question: "椰子從樹上掉下來走什麼路線？", options: ["彎曲線", "直線", "圓圈", "Z字形"], correct: 1, type: "geometry", explanation: "重力讓椰子直直往下掉，走直線最快！🥥", coins: 2 },
+            
+            // 應用 (4題) - 島嶼生活主題
+            { category: "🛒 應用", color: "bg-blue-100 border-blue-400", question: "探險隊有24瓶水，每天喝6瓶，可以喝幾天？", options: ["3天", "4天", "5天", "6天"], correct: 1, type: "application", explanation: "24 ÷ 6 = 4天。每天6瓶，4天剛好喝完！💧", coins: 4 },
+            { category: "🛒 應用", color: "bg-blue-100 border-blue-400", question: "造木筏需要15根木頭，已有9根，還要撿幾根？", options: ["4根", "5根", "6根", "7根"], correct: 2, type: "application", explanation: "15 - 9 = 6根。再撿6根就能造木筏出海了！🪵", coins: 4 },
+            { category: "🛒 應用", color: "bg-blue-100 border-blue-400", question: "島上日出6點，日落6點，白天有幾小時？", options: ["10小時", "11小時", "12小時", "13小時"], correct: 2, type: "application", explanation: "從早上6點到晚上6點，總共12小時！☀️", coins: 4 },
+            { category: "🛒 應用", color: "bg-blue-100 border-blue-400", question: "5個探險家平分40個椰子，每人分幾個？", options: ["6個", "7個", "8個", "9個"], correct: 2, type: "application", explanation: "40 ÷ 5 = 8個。每人8個椰子，公平分配！🥥", coins: 4 },
+            
+            // 代數 (3題) - 神秘符號主題
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-400", question: "古老石碑：🌟, 🌟🌟, 🌟🌟🌟, ?", options: ["🌟🌟🌟🌟", "🌟🌟", "🌟", "🌟🌟🌟🌟🌟"], correct: 0, type: "algebra", explanation: "每次多一個星星：1, 2, 3, 4個星星！✨", coins: 5 },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-400", question: "神秘方程式：🏺 + 🏺 + 🏺 = 21，一個🏺代表？", options: ["5", "6", "7", "8"], correct: 2, type: "algebra", explanation: "3個相同的🏺 = 21，所以🏺 = 21 ÷ 3 = 7！🏺", coins: 5 },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-400", question: "魔法數字：10, 20, 30, ?", options: ["35", "40", "45", "50"], correct: 1, type: "algebra", explanation: "每次加10：10→20→30→40，這是10的倍數！🔮", coins: 5 },
+            
+            // 組合 (3題) - 探險準備主題
+            { category: "🧩 組合", color: "bg-orange-100 border-orange-400", question: "有3頂帽子、2個背包，有幾種搭配方式？", options: ["5種", "6種", "7種", "8種"], correct: 1, type: "combination", explanation: "每頂帽子配每個背包：3 × 2 = 6種組合！🎒", coins: 3 },
+            { category: "🧩 組合", color: "bg-orange-100 border-orange-400", question: "4位探險家要選出隊長和副隊長，有幾種選法？", options: ["8種", "10種", "12種", "14種"], correct: 2, type: "combination", explanation: "隊長4選1，副隊長從剩下3人選：4 × 3 = 12種！👥", coins: 3 },
+            { category: "🧩 組合", color: "bg-orange-100 border-orange-400", question: "寶箱密碼是2個不同數字(1-3)，有幾種可能？", options: ["4種", "5種", "6種", "7種"], correct: 2, type: "combination", explanation: "12,13,21,23,31,32共6種！不能重複！🔐", coins: 3 },
+            
+            // 數感 (4題) - 島嶼測量主題
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-400", question: "島嶼周長198公尺，最接近多少？", options: ["100公尺", "150公尺", "200公尺", "250公尺"], correct: 2, type: "number_sense", explanation: "198最接近200，只差2公尺！📏", coins: 2 },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-400", question: "把島分成5區，探索了2區，探索了幾分之幾？", options: ["1/5", "2/5", "3/5", "4/5"], correct: 1, type: "number_sense", explanation: "總共5區，探索2區，就是2/5（五分之二）！🗺️", coins: 2 },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-400", question: "哪袋寶石最重？", options: ["0.5公斤", "499公克", "半公斤", "0.51公斤"], correct: 3, type: "number_sense", explanation: "0.51公斤=510公克，比其他都重！💎", coins: 2 },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-400", question: "用4、7、1排出最小的三位數是？", options: ["147", "174", "417", "471"], correct: 0, type: "number_sense", explanation: "要最小，百位放1，十位放4，個位放7：147！🔢", coins: 2 }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        // Handle answer selection
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            
+            // 答對獲得金幣
+            if (selectedIndex === questions[currentQuestionIndex].correct) {
+                treasureCoins += questions[currentQuestionIndex].coins || 1;
+            }
+            
+            // 更新島嶼探索進度
+            islandProgress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            
+            renderApp();
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 1600);
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 1600);
+            }
+        }
+
+        // Restart quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            startTime = Date.now();
+            treasureCoins = 0;
+            islandProgress = 0;
+            renderApp();
+        }
+
+        // Calculate results
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            let perfectCategories = [];
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                }
+            });
+
+            // 找出滿分的類別
+            Object.keys(results).forEach(key => {
+                if (results[key].correct === results[key].total && results[key].total > 0) {
+                    perfectCategories.push(key);
+                }
+            });
+
+            results.perfectCategories = perfectCategories;
+            return results;
+        }
+
+        // Main render function
+        function renderApp() {
+            // Island theme gradient background
+            document.body.className = 'island-bg';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        // Render question screen
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-white bg-opacity-90 border-gray-300 text-gray-700 hover:shadow-xl cursor-pointer hover:bg-opacity-100';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-green-200 border-green-500 text-green-800 shadow-xl';
+                        icon = '<span class="inline-block ml-2">✅</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-200 border-red-500 text-red-800';
+                        icon = '<span class="inline-block ml-2">❌</span>';
+                    } else {
+                        buttonClass = 'bg-gray-100 border-gray-300 text-gray-500 opacity-60';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-5 rounded-2xl option-text font-bold border-3 transition-all duration-300 transform hover:scale-105 ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            // 島嶼地圖進度
+            const islandMap = `
+                <div class="relative w-full h-16 mb-4">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-300 via-green-300 to-yellow-300 rounded-full opacity-30"></div>
+                    <div class="absolute inset-0 flex items-center px-4">
+                        <div class="w-full bg-white bg-opacity-50 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-1000"
+                                 style="width: ${islandProgress}%"></div>
+                        </div>
+                        <span class="absolute boat-float text-3xl" style="left: ${Math.max(5, islandProgress - 5)}%">⛵</span>
+                    </div>
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl sparkle-treasure">🏝️</div>
+                </div>
+            `;
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <!-- Adventure Header -->
+                    <div class="text-center mb-4">
+                        <div class="inline-block bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-3 rounded-full font-bold text-xl shadow-lg wave">
+                            🏝️ 數學冒險島 🗺️
+                        </div>
+                    </div>
+
+                    <!-- Treasure Counter -->
+                    <div class="text-center mb-4">
+                        <span class="inline-block bg-yellow-200 text-yellow-800 px-4 py-2 rounded-full font-bold">
+                            <span class="coin-spin inline-block">💰</span> 寶藏金幣：${treasureCoins}
+                        </span>
+                    </div>
+
+                    <!-- Island Progress Map -->
+                    ${islandMap}
+
+                    <div class="text-center text-white drop-shadow-lg text-xl mb-4 font-bold">
+                        🏴‍☠️ 第 ${currentQuestionIndex + 1} 關 / 共 ${questions.length} 關
+                    </div>
+
+                    <!-- Question Card -->
+                    <div class="${question.color} rounded-3xl shadow-2xl p-6 sm:p-8 border-4 transform hover:rotate-1 transition-all duration-300">
+                        <div class="text-center mb-6">
+                            <div class="text-2xl sm:text-3xl font-bold text-gray-700 mb-4 flex items-center justify-center gap-2">
+                                <span class="palm-sway inline-block">${question.category.split(' ')[0]}</span>
+                                <span>${question.category.split(' ')[1]}</span>
+                            </div>
+                            <div class="question-text font-bold text-gray-800 mb-6 min-h-[6rem] flex items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <!-- Answer Options -->
+                        <div class="grid grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-6">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2">
+                                    ${selectedAnswer === question.correct ? 
+                                        `🎉 找到寶藏！+${question.coins}💰` 
+                                        : "💪 繼續探索！"}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-white bg-opacity-70 rounded-xl p-4 mt-4 border-2 border-blue-300">
+                                        <div class="text-base font-bold text-gray-700 mb-1">🧭 探險筆記：</div>
+                                        <div class="text-base text-gray-700">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                                <div class="text-center text-lg text-gray-600 mt-2 font-semibold">
+                                    ${currentQuestionIndex < questions.length - 1 ? '航向下一個島嶼...' : '返回基地統計寶藏...'}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render result screen
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            
+            let resultEmoji = "🏝️";
+            let resultMessage = "冒險完成！你發現了許多寶藏！";
+            let titleRank = "見習探險家";
+
+            if (scorePercentage >= 0.95) {
+                resultEmoji = "👑";
+                resultMessage = "你成為了傳說中的寶藏獵人！";
+                titleRank = "傳奇探險家";
+            } else if (scorePercentage >= 0.85) {
+                resultEmoji = "🏆";
+                resultMessage = "出色的冒險！寶藏滿載而歸！";
+                titleRank = "資深探險家";
+            } else if (scorePercentage >= 0.7) {
+                resultEmoji = "⭐";
+                resultMessage = "很棒的探險！收穫豐富！";
+                titleRank = "探險家";
+            } else if (scorePercentage >= 0.5) {
+                resultEmoji = "🗺️";
+                resultMessage = "不錯的開始！繼續探索吧！";
+                titleRank = "探險學徒";
+            }
+
+            // 特殊成就判定
+            const achievements = [];
+            if (treasureCoins >= 60) achievements.push("💎 寶藏大師");
+            if (timeTaken < 360) achievements.push("⚡ 神速航海家");
+            if (results.perfectCategories.length >= 2) achievements.push("🎯 精準導航員");
+            if (scorePercentage === 1) achievements.push("🌟 完美探險");
+
+            const categoryResultsHtml = Object.keys(results).filter(key => key !== 'perfectCategories').map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", icon: "💰", style: "bg-yellow-50 border-yellow-300 text-yellow-700" },
+                    geometry: { name: "🔺 幾何", icon: "🗺️", style: "bg-green-50 border-green-300 text-green-700" },
+                    application: { name: "🛒 應用", icon: "⛵", style: "bg-blue-50 border-blue-300 text-blue-700" },
+                    algebra: { name: "🎨 代數", icon: "🔮", style: "bg-purple-50 border-purple-300 text-purple-700" },
+                    combination: { name: "🧩 組合", icon: "🎒", style: "bg-orange-50 border-orange-300 text-orange-700" },
+                    number_sense: { name: "🔢 數感", icon: "🧭", style: "bg-pink-50 border-pink-300 text-pink-700" },
+                };
+                const info = categoryMap[key];
+                const percentage = results[key].total > 0 ? Math.round((results[key].correct / results[key].total) * 100) : 0;
+                const isPerfect = results.perfectCategories.includes(key);
+                
+                return `
+                    <div class="${info.style} p-4 rounded-2xl border-2 transform hover:scale-105 transition-all duration-200 relative overflow-hidden">
+                        ${isPerfect ? '<div class="absolute top-0 right-0 text-2xl p-1">👑</div>' : ''}
+                        <div class="text-lg font-bold flex items-center gap-2">
+                            <span class="text-2xl">${info.icon}</span>
+                            <span>${info.name}</span>
+                        </div>
+                        <div class="text-2xl font-bold mt-1">${results[key].correct}/${results[key].total}</div>
+                        <div class="text-sm">探索成功率 ${percentage}%</div>
+                        <div class="mt-2 bg-white bg-opacity-50 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-blue-400 to-green-400 h-3 rounded-full transition-all duration-1000" 
+                                 style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white bg-opacity-95 rounded-3xl shadow-2xl p-8 text-center border-4 border-blue-300">
+                        <div class="text-8xl mb-4">${resultEmoji}</div>
+                        
+                        <h2 class="text-4xl font-bold text-gray-800 mb-2">冒險完成！</h2>
+                        
+                        <div class="inline-block bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-3 rounded-full font-bold text-xl mb-6 shadow-lg">
+                            🏅 ${titleRank} 🏅
+                        </div>
+                        
+                        <!-- 主要成績 -->
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-4">
+                                <div class="text-3xl mb-1">🎯</div>
+                                <div class="text-sm text-gray-600">探索成功</div>
+                                <div class="text-2xl font-bold text-blue-700">${totalCorrect}/${totalQuestions}</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl p-4">
+                                <div class="text-3xl mb-1">💰</div>
+                                <div class="text-sm text-gray-600">寶藏金幣</div>
+                                <div class="text-2xl font-bold text-orange-700">${treasureCoins}枚</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl p-4">
+                                <div class="text-3xl mb-1">⏱️</div>
+                                <div class="text-sm text-gray-600">探險時間</div>
+                                <div class="text-2xl font-bold text-green-700">${minutes}:${seconds.toString().padStart(2, '0')}</div>
+                            </div>
+                        </div>
+
+                        <!-- 成就徽章 -->
+                        ${achievements.length > 0 ? `
+                            <div class="mb-6 p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl">
+                                <div class="text-lg font-bold text-gray-700 mb-3">🏆 獲得成就</div>
+                                <div class="flex flex-wrap justify-center gap-3">
+                                    ${achievements.map(achievement => `
+                                        <span class="inline-block bg-white px-4 py-2 rounded-full text-sm font-bold shadow-md">
+                                            ${achievement}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- 各島嶼探索成果 -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-700">
+                            ${resultMessage}
+                        </div>
+
+                        <button
+                            onclick="restartQuiz()"
+                            class="bg-gradient-to-r from-blue-500 to-green-500 text-white text-xl font-bold py-4 px-8 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-200 wave"
+                        >
+                            再次出航 ⛵
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Start the quiz
+        renderApp();
+
+    </script>
+</body>
+</html>

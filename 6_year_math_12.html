@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>七歲數學探索之旅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        /* Smooth transitions and animations */
+        #app > div {
+            animation: slideIn 0.6s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        /* Pulse animation for theme badge */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        /* Rainbow gradient animation */
+        .rainbow-bg {
+            background: linear-gradient(45deg, #ff6b6b, #f06595, #cc5de8, #845ef7, #5c7cfa, #339af0, #22b8cf, #20c997);
+            background-size: 200% 200%;
+            animation: rainbow 5s ease infinite;
+        }
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        /* Question and option text sizes */
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.25rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2rem;
+                line-height: 2.5rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+        /* Star animation */
+        .star-spin {
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables to manage the quiz
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+        let startTime = Date.now();
+        let streakCount = 0; // 連續答對次數
+
+        // New set of quiz questions for 7-year-olds
+        const questions = [
+            // 計算 (4題) - 不同的計算挑戰
+            { category: "🧮 計算", color: "bg-orange-100 border-orange-300", question: "23 + 19 = ?", options: ["40", "41", "42", "43"], correct: 2, type: "calculation", explanation: "23 + 19 = 23 + 20 - 1 = 43 - 1 = 42。先加20再減1更簡單！🎪" },
+            { category: "🧮 計算", color: "bg-orange-100 border-orange-300", question: "50 - 27 = ?", options: ["21", "22", "23", "24"], correct: 2, type: "calculation", explanation: "50 - 27 = 50 - 30 + 3 = 20 + 3 = 23。減30再加回3！🎨" },
+            { category: "🧮 計算", color: "bg-orange-100 border-orange-300", question: "6 + 6 + 6 + 6 = ?", options: ["22", "23", "24", "25"], correct: 2, type: "calculation", explanation: "4個6相加 = 6 × 4 = 24。或分組算：(6+6) + (6+6) = 12 + 12 = 24！🎯" },
+            { category: "🧮 計算", color: "bg-orange-100 border-orange-300", question: "__ - 18 = 30，空格填什麼？", options: ["46", "47", "48", "49"], correct: 2, type: "calculation", explanation: "要找什麼數減18等於30？30 + 18 = 48。檢驗：48 - 18 = 30 ✓" },
+            
+            // 幾何 (4題) - 新的空間概念
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "長方形有幾個直角？", options: ["2個", "3個", "4個", "5個"], correct: 2, type: "geometry", explanation: "長方形的4個角都是90度的直角，就像4個L形！📐" },
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "哪個立體圖形滾得最快？", options: ["正方體", "圓球", "圓柱", "金字塔"], correct: 1, type: "geometry", explanation: "圓球沒有邊和角，可以向任何方向順暢滾動，最快！⚽" },
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "剪一個圓形對摺2次，展開有幾條摺痕？", options: ["1條", "2條", "3條", "4條"], correct: 1, type: "geometry", explanation: "對摺1次有1條痕，再對摺1次又有1條，共2條摺痕十字交叉！✂️" },
+            { category: "🔺 幾何", color: "bg-cyan-100 border-cyan-300", question: "哪兩個圖形可以拼成長方形？", options: ["2個圓形", "2個正三角形", "2個相同直角三角形", "2個五角形"], correct: 2, type: "geometry", explanation: "兩個相同的直角三角形可以拼成一個長方形，像把三明治切一半！🥪" },
+            
+            // 應用 (4題) - 新的生活情境
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "班上30人，男生比女生多4人，女生有幾人？", options: ["11人", "12人", "13人", "14人"], correct: 2, type: "application", explanation: "設女生x人，男生x+4人。x + (x+4) = 30，2x = 26，x = 13人！👫" },
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "一週存10元，要存滿80元需要幾週？", options: ["6週", "7週", "8週", "9週"], correct: 2, type: "application", explanation: "80 ÷ 10 = 8週。每週10元，8週就是10×8=80元！💰" },
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "今天星期四，10天後是星期幾？", options: ["星期日", "星期一", "星期二", "星期三"], correct: 0, type: "application", explanation: "一週7天，10天=1週+3天。星期四+3天=星期日！📅" },
+            { category: "🛒 應用", color: "bg-lime-100 border-lime-300", question: "買3枝筆花36元，每枝筆多少錢？", options: ["10元", "11元", "12元", "13元"], correct: 2, type: "application", explanation: "36元平均分給3枝筆：36 ÷ 3 = 12元/枝。檢驗：12×3=36 ✓ ✏️" },
+            
+            // 代數 (3題) - 新的模式思考
+            { category: "🎨 代數", color: "bg-violet-100 border-violet-300", question: "規律：2, 5, 8, 11, ?", options: ["13", "14", "15", "16"], correct: 1, type: "algebra", explanation: "每次都加3：2(+3)→5(+3)→8(+3)→11(+3)→14！🔮" },
+            { category: "🎨 代數", color: "bg-violet-100 border-violet-300", question: "如果☆×3=15，那麼☆×5=?", options: ["20", "25", "30", "35"], correct: 1, type: "algebra", explanation: "☆×3=15，所以☆=5。那麼☆×5=5×5=25！⭐" },
+            { category: "🎨 代數", color: "bg-violet-100 border-violet-300", question: "數字金字塔：最上1，第二層2、3，第三層？", options: ["4,5,6", "3,4,5", "5,6,7", "4,5"], correct: 0, type: "algebra", explanation: "規律是連續數字：1｜2,3｜4,5,6｜7,8,9,10...每層多一個數！🔺" },
+            
+            // 組合 (3題) - 新的邏輯挑戰
+            { category: "🧩 組合", color: "bg-amber-100 border-amber-300", question: "5個人握手，每人都要和其他人握一次，共握幾次？", options: ["8次", "9次", "10次", "11次"], correct: 2, type: "combination", explanation: "5人選2人握手：5×4÷2=10次。像連線遊戲，不重複！🤝" },
+            { category: "🧩 組合", color: "bg-amber-100 border-amber-300", question: "有紅黃藍3件衣服、黑白2條褲子，有幾種穿法？", options: ["5種", "6種", "7種", "8種"], correct: 1, type: "combination", explanation: "每件衣服配每條褲子：3件衣服×2條褲子=6種組合！👕" },
+            { category: "🧩 組合", color: "bg-amber-100 border-amber-300", question: "小明、小華、小美賽跑，沒有並列，有幾種名次可能？", options: ["4種", "5種", "6種", "7種"], correct: 2, type: "combination", explanation: "第一名3種選擇，第二名2種，第三名1種：3×2×1=6種！🏃" },
+            
+            // 數感 (4題) - 新的數字理解
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "1公尺=100公分，半公尺是幾公分？", options: ["25公分", "50公分", "75公分", "100公分"], correct: 1, type: "number_sense", explanation: "半公尺就是1公尺的一半：100÷2=50公分！📏" },
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "哪個分數最大？", options: ["1/2", "1/3", "1/4", "1/5"], correct: 0, type: "number_sense", explanation: "分母越小，每份越大！想像切蛋糕：切2份比切5份，每份更大！🍰" },
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "299最接近哪個整百數？", options: ["100", "200", "300", "400"], correct: 2, type: "number_sense", explanation: "299離300只差1，是最接近的整百數！🎯" },
+            { category: "🔢 數感", color: "bg-rose-100 border-rose-300", question: "用2、5、8可以組成的最大三位數是？", options: ["258", "528", "825", "852"], correct: 3, type: "number_sense", explanation: "要最大，百位放最大的8，十位放次大的5，個位放2：852！💎" }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        // Function to handle user's answer
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            
+            // 更新連續答對次數
+            if (selectedIndex === questions[currentQuestionIndex].correct) {
+                streakCount++;
+            } else {
+                streakCount = 0;
+            }
+            
+            renderApp();
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 1600);
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 1600);
+            }
+        }
+
+        // Function to restart the quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            startTime = Date.now();
+            streakCount = 0;
+            renderApp();
+        }
+
+        // Function to calculate final results
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            let maxStreak = 0;
+            let currentStreak = 0;
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                    currentStreak++;
+                    maxStreak = Math.max(maxStreak, currentStreak);
+                } else {
+                    currentStreak = 0;
+                }
+            });
+
+            results.maxStreak = maxStreak;
+            return results;
+        }
+
+        // Main function to render the UI
+        function renderApp() {
+            // Set a space theme gradient background
+            document.body.className = 'bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        // Renders the question view
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-white border-gray-300 text-gray-700 hover:shadow-lg cursor-pointer hover:bg-gray-50';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-green-200 border-green-400 text-green-800 shadow-lg';
+                        icon = '<span class="inline-block ml-2">✅</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-200 border-red-400 text-red-800';
+                        icon = '<span class="inline-block ml-2">❌</span>';
+                    } else {
+                        buttonClass = 'bg-gray-100 border-gray-300 text-gray-500';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-5 rounded-2xl option-text font-bold border-4 transition-all duration-200 transform hover:scale-105 ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            // 連勝效果
+            const streakDisplay = streakCount >= 3 ? `
+                <div class="text-center mb-2">
+                    <span class="inline-block bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full font-bold animate-bounce">
+                        🔥 連續答對 ${streakCount} 題！
+                    </span>
+                </div>
+            ` : '';
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <!-- Theme Badge -->
+                    <div class="text-center mb-4">
+                        <span class="inline-block rainbow-bg text-white px-6 py-3 rounded-full font-bold text-xl shadow-lg">
+                            🚀 數學探索之旅 🌟
+                        </span>
+                    </div>
+
+                    ${streakDisplay}
+
+                    <!-- Progress Bar with stars -->
+                    <div class="bg-white bg-opacity-20 rounded-full p-2 mb-6 relative">
+                        <div 
+                            class="bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 rounded-full h-4 transition-all duration-700"
+                            style="width: ${((currentQuestionIndex + 1) / questions.length) * 100}%"
+                        ></div>
+                        ${Array(questions.length).fill().map((_, i) => `
+                            <span class="absolute top-1/2 transform -translate-y-1/2 text-xs"
+                                  style="left: ${(i + 0.5) / questions.length * 100}%">
+                                ${i < currentQuestionIndex ? '⭐' : i === currentQuestionIndex ? '🌟' : '☆'}
+                            </span>
+                        `).join('')}
+                    </div>
+
+                    <div class="text-center text-white text-xl mb-4 font-semibold">
+                        探索站 ${currentQuestionIndex + 1} / ${questions.length}
+                    </div>
+
+                    <!-- Question Card with floating effect -->
+                    <div class="${question.color} rounded-3xl shadow-2xl p-6 sm:p-8 border-4 transform hover:scale-[1.02] transition-all duration-300">
+                        <div class="text-center mb-6">
+                            <div class="text-2xl sm:text-3xl font-bold text-gray-700 mb-4 flex items-center justify-center gap-2">
+                                <span class="star-spin">${question.category.split(' ')[0]}</span>
+                                <span>${question.category.split(' ')[1]}</span>
+                            </div>
+                            <div class="question-text font-bold text-gray-800 mb-6 min-h-[6rem] flex items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <!-- Answer Options Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-6">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2">
+                                    ${selectedAnswer === question.correct ? 
+                                        streakCount >= 3 ? "🎊 太棒了！繼續保持！" : "🎉 答對了！" 
+                                        : "💪 沒關係，繼續努力！"}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-gradient-to-r from-white to-gray-50 bg-opacity-80 rounded-xl p-4 mt-4 border-2 border-gray-200">
+                                        <div class="text-base font-bold text-gray-700 mb-1">🔍 解題秘訣：</div>
+                                        <div class="text-base text-gray-700">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                                <div class="text-center text-lg text-gray-600 mt-2">
+                                    ${currentQuestionIndex < questions.length - 1 ? '準備探索下一題...' : '統計探索成果中...'}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Renders the result view
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            
+            let resultEmoji = "🌟";
+            let resultMessage = "探索完成！你學到了很多！";
+            let starCount = 1;
+            let achievementBadge = "";
+
+            if (scorePercentage >= 0.95) {
+                resultEmoji = "👑";
+                resultMessage = "你是數學探索大師！";
+                starCount = 5;
+                achievementBadge = "🏆 完美探索者";
+            } else if (scorePercentage >= 0.85) {
+                resultEmoji = "🎯";
+                resultMessage = "探索成果豐富！表現優異！";
+                starCount = 4;
+                achievementBadge = "🥇 優秀探索者";
+            } else if (scorePercentage >= 0.7) {
+                resultEmoji = "🚀";
+                resultMessage = "探索順利！繼續前進！";
+                starCount = 3;
+                achievementBadge = "🥈 熟練探索者";
+            } else if (scorePercentage >= 0.5) {
+                resultEmoji = "⭐";
+                resultMessage = "不錯的開始！再接再厲！";
+                starCount = 2;
+                achievementBadge = "🥉 新手探索者";
+            }
+
+            // 特殊成就
+            const specialAchievements = [];
+            if (results.maxStreak >= 5) specialAchievements.push("🔥 連勝達人");
+            if (timeTaken < 300) specialAchievements.push("⚡ 快速思考者");
+            if (results.calculation.correct === results.calculation.total && results.calculation.total > 0) 
+                specialAchievements.push("🧮 計算專家");
+
+            const categoryResultsHtml = Object.keys(results).filter(key => key !== 'maxStreak').map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", style: "bg-orange-50 border-orange-200 text-orange-600", color: "from-orange-400 to-red-400" },
+                    geometry: { name: "🔺 幾何", style: "bg-cyan-50 border-cyan-200 text-cyan-600", color: "from-cyan-400 to-blue-400" },
+                    application: { name: "🛒 應用", style: "bg-lime-50 border-lime-200 text-lime-600", color: "from-lime-400 to-green-400" },
+                    algebra: { name: "🎨 代數", style: "bg-violet-50 border-violet-200 text-violet-600", color: "from-violet-400 to-purple-400" },
+                    combination: { name: "🧩 組合", style: "bg-amber-50 border-amber-200 text-amber-600", color: "from-amber-400 to-yellow-400" },
+                    number_sense: { name: "🔢 數感", style: "bg-rose-50 border-rose-200 text-rose-600", color: "from-rose-400 to-pink-400" },
+                };
+                const info = categoryMap[key];
+                const percentage = results[key].total > 0 ? Math.round((results[key].correct / results[key].total) * 100) : 0;
+                
+                return `
+                    <div class="${info.style} p-4 rounded-xl border-2 transform hover:scale-105 transition-all duration-200 hover:shadow-lg">
+                        <div class="text-lg font-bold">${info.name}</div>
+                        <div class="text-2xl font-bold">${results[key].correct}/${results[key].total}</div>
+                        <div class="text-sm mb-2">正確率 ${percentage}%</div>
+                        <div class="bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r ${info.color} h-3 rounded-full transition-all duration-1000 relative overflow-hidden" 
+                                 style="width: ${percentage}%">
+                                <div class="absolute inset-0 bg-white opacity-30 animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const starsHtml = Array(5).fill().map((_, i) => 
+                `<span class="text-5xl ${i < starCount ? 'text-yellow-400' : 'text-gray-300'}">${i < starCount ? '⭐' : '☆'}</span>`
+            ).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 text-center">
+                        <div class="text-8xl mb-4 pulse">${resultEmoji}</div>
+                        
+                        ${achievementBadge ? `
+                            <div class="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full font-bold text-xl mb-4 shadow-lg">
+                                ${achievementBadge}
+                            </div>
+                        ` : ''}
+                        
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">探索完成！</h2>
+                        
+                        <div class="flex justify-center gap-1 mb-6">
+                            ${starsHtml}
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl p-4">
+                                <div class="text-4xl mb-1">🎯</div>
+                                <div class="text-sm text-gray-600">總分</div>
+                                <div class="text-2xl font-bold text-purple-600">${totalCorrect}/${totalQuestions}</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-100 to-teal-100 rounded-xl p-4">
+                                <div class="text-4xl mb-1">📊</div>
+                                <div class="text-sm text-gray-600">正確率</div>
+                                <div class="text-2xl font-bold text-green-600">${Math.round(scorePercentage * 100)}%</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-orange-100 to-yellow-100 rounded-xl p-4">
+                                <div class="text-4xl mb-1">⏱️</div>
+                                <div class="text-sm text-gray-600">用時</div>
+                                <div class="text-2xl font-bold text-orange-600">${minutes}:${seconds.toString().padStart(2, '0')}</div>
+                            </div>
+                        </div>
+
+                        ${results.maxStreak >= 3 ? `
+                            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-4 mb-6">
+                                <div class="text-lg text-gray-600">最高連勝</div>
+                                <div class="text-3xl font-bold text-orange-600">🔥 ${results.maxStreak} 題</div>
+                            </div>
+                        ` : ''}
+
+                        ${specialAchievements.length > 0 ? `
+                            <div class="mb-6">
+                                <div class="text-lg font-bold text-gray-700 mb-2">🏅 特殊成就</div>
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    ${specialAchievements.map(achievement => `
+                                        <span class="inline-block bg-gradient-to-r from-purple-200 to-pink-200 px-4 py-2 rounded-full text-sm font-bold">
+                                            ${achievement}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-700">
+                            ${resultMessage}
+                        </div>
+
+                        <button
+                            onclick="restartQuiz()"
+                            class="rainbow-bg text-white text-xl font-bold py-4 px-8 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                            再次探索 🚀
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initial render to start the quiz
+        renderApp();
+
+    </script>
+</body>
+</html>
