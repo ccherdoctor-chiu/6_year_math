@@ -3,103 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六歲數學測驗總覽</title>
+    <title>小小數學網頁</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
         }
-        .quiz-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .age-card {
+            transition: all 0.4s ease;
         }
-        .quiz-card:hover {
-            transform: translateY(-10px) scale(1.05);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        .age-card:hover {
+            transform: translateY(-15px) scale(1.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .coin-animation {
+            animation: coinBounce 0.6s ease-in-out;
+        }
+        @keyframes coinBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 min-h-screen">
 
-    <div class="w-full max-w-6xl mx-auto">
-        <div class="bg-white bg-opacity-90 rounded-3xl shadow-2xl p-8 sm:p-12 text-center">
-            
-            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-4">
-                🚀 數學小高手挑戰 🌟
-            </h1>
-            <p class="text-lg sm:text-xl text-gray-600 mb-10">
-                選擇一個測驗開始你的冒險吧！
-            </p>
-
-            <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
-                <!-- Links to 30 quiz files will be generated here -->
-                <script>
-                    const container = document.querySelector('.grid');
-                    const colors = [
-                        'from-red-400 to-red-600',
-                        'from-yellow-400 to-yellow-600',
-                        'from-green-400 to-green-600',
-                        'from-blue-400 to-blue-600',
-                        'from-indigo-400 to-indigo-600',
-                        'from-purple-400 to-purple-600',
-                        'from-pink-400 to-pink-600',
-                        'from-orange-400 to-orange-600',
-                        'from-teal-400 to-teal-600',
-                        'from-cyan-400 to-cyan-600',
-                        'from-rose-400 to-rose-600',
-                        'from-emerald-400 to-emerald-600',
-                        'from-lime-400 to-lime-600',
-                        'from-sky-400 to-sky-600',
-                        'from-violet-400 to-violet-600',
-                        'from-fuchsia-400 to-fuchsia-600',
-                        'from-amber-400 to-amber-600',
-                        'from-red-500 to-orange-500',
-                        'from-green-500 to-blue-500',
-                        'from-purple-500 to-pink-500',
-                        'from-yellow-500 to-red-500',
-                        'from-blue-500 to-indigo-500',
-                        'from-pink-500 to-purple-500',
-                        'from-teal-500 to-green-500',
-                        'from-orange-500 to-yellow-500',
-                        'from-indigo-500 to-purple-500',
-                        'from-cyan-500 to-blue-500',
-                        'from-lime-500 to-green-500',
-                        'from-rose-500 to-pink-500',
-                        'from-emerald-500 to-teal-500'
-                    ];
-                    
-                    const icons = [
-                        '🍎', '🍌', '🍓', '🍇', '🍉', '🍊', '🍍', '🥝', '🍑', '🍒',
-                        '🦁', '🐯', '🐻', '🐼', '🐨', '🐸', '🐰', '🦊', '🐺', '🐱',
-                        '⭐', '🌟', '✨', '💎', '🔥', '⚡', '🌈', '☀️', '🌙', '🎈'
-                    ];
-
-                    for (let i = 1; i <= 30; i++) {
-                        const fileNumber = i.toString().padStart(2, '0');
-                        const fileName = `6_year_math_${fileNumber}.html`;
-                        const colorClass = colors[i-1];
-                        const icon = icons[i-1];
-                        
-                        const cardHtml = `
-                            <a href="${fileName}" class="quiz-card bg-gradient-to-br ${colorClass} text-white rounded-2xl p-3 flex flex-col items-center justify-center aspect-square">
-                                <div class="text-2xl sm:text-3xl mb-1">${icon}</div>
-                                <div class="text-sm sm:text-base font-bold">
-                                    測驗 ${i}
-                                </div>
-                            </a>
-                        `;
-                        container.innerHTML += cardHtml;
-                    }
-                </script>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header with Coin System -->
+        <header class="bg-white bg-opacity-20 backdrop-blur-lg p-4 sm:p-6">
+            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="text-3xl sm:text-4xl floating">🎓</div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-white gradient-text">
+                        小小數學網頁
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-2 bg-yellow-400 bg-opacity-90 px-4 py-2 rounded-full shadow-lg">
+                    <span class="text-2xl" id="coinIcon">🪙</span>
+                    <span class="font-bold text-yellow-800" id="coinCount">0</span>
+                    <span class="text-yellow-700 text-sm">金幣</span>
+                </div>
             </div>
+        </header>
 
-            <p class="mt-12 text-gray-500">
-                完成所有挑戰，成為數學大師！🏆
+        <!-- Main Content -->
+        <main class="flex-1 flex items-center justify-center p-4">
+            <div class="w-full max-w-6xl mx-auto">
+                <div class="bg-white bg-opacity-95 rounded-3xl shadow-2xl p-6 sm:p-12">
+                    
+                    <!-- Welcome Section -->
+                    <div class="text-center mb-12">
+                        <h2 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+                            🌟 歡迎來到數學王國 🌟
+                        </h2>
+                        <p class="text-lg sm:text-xl text-gray-600 mb-6">
+                            選擇你的年齡，開始數學冒險旅程！
+                        </p>
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg max-w-2xl mx-auto">
+                            <p class="text-blue-700">
+                                💡 小提示：每答對一題可獲得 <span class="font-bold">10 金幣</span>，完成整個測驗還有額外獎勵哦！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Age Selection Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <script>
+                            const container = document.querySelector('.grid');
+                            const ageGroups = [
+                                { age: 6, name: '六歲', emoji: '🍎', colors: 'from-red-400 to-pink-500', desc: '基礎認數' },
+                                { age: 7, name: '七歲', emoji: '🌈', colors: 'from-orange-400 to-red-500', desc: '簡單加減' },
+                                { age: 8, name: '八歲', emoji: '🚀', colors: 'from-yellow-400 to-orange-500', desc: '乘法入門' },
+                                { age: 9, name: '九歲', emoji: '⭐', colors: 'from-green-400 to-blue-500', desc: '除法學習' },
+                                { age: 10, name: '十歲', emoji: '🎯', colors: 'from-blue-400 to-purple-500', desc: '四則運算' },
+                                { age: 11, name: '十一歲', emoji: '🎨', colors: 'from-purple-400 to-pink-500', desc: '分數概念' },
+                                { age: 12, name: '十二歲', emoji: '🏆', colors: 'from-indigo-400 to-purple-600', desc: '進階運算' }
+                            ];
+
+                            ageGroups.forEach(group => {
+                                const available = group.age === 6; // 目前只有6歲可用
+                                const cardClass = available ? 'age-card cursor-pointer' : 'opacity-50 cursor-not-allowed';
+                                const onclick = available ? `window.location.href='index_${group.age}_year.html'` : 'showComingSoon()';
+                                
+                                const cardHtml = `
+                                    <div class="${cardClass} bg-gradient-to-br ${group.colors} text-white rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-lg" onclick="${onclick}">
+                                        <div class="text-4xl sm:text-5xl mb-2">${group.emoji}</div>
+                                        <div class="text-xl sm:text-2xl font-bold mb-1">${group.name}</div>
+                                        <div class="text-sm sm:text-base opacity-90 text-center">${group.desc}</div>
+                                        ${available ? '<div class="mt-2 text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">可開始</div>' : '<div class="mt-2 text-xs bg-gray-500 bg-opacity-50 px-2 py-1 rounded-full">即將推出</div>'}
+                                    </div>
+                                `;
+                                container.innerHTML += cardHtml;
+                            });
+                        </script>
+                    </div>
+
+                    <!-- Statistics Section -->
+                    <div class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl font-bold" id="totalQuizzes">0</div>
+                            <div class="text-sm opacity-90">完成測驗</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl font-bold" id="correctAnswers">0</div>
+                            <div class="text-sm opacity-90">答對題目</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl text-center">
+                            <div class="text-2xl font-bold" id="accuracy">0%</div>
+                            <div class="text-sm opacity-90">正確率</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white bg-opacity-20 backdrop-blur-lg p-4 text-center">
+            <p class="text-white text-sm">
+                🎉 持續學習，成為數學小天才！加油！ 🎉
             </p>
+        </footer>
+    </div>
+
+    <!-- Coming Soon Modal -->
+    <div id="comingSoonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 text-center">
+            <div class="text-6xl mb-4">🚧</div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">即將推出</h3>
+            <p class="text-gray-600 mb-6">這個年齡段的數學題正在準備中，敬請期待！</p>
+            <button onclick="hideComingSoon()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">
+                知道了
+            </button>
         </div>
     </div>
+
+    <script>
+        // 金幣系統 (注意：此為演示版本，使用記憶體儲存，頁面重整後會重置)
+        // 在實際應用中，可以使用 localStorage 來持久化儲存
+        let gameData = {
+            coins: 0,
+            totalQuizzes: 0,
+            correctAnswers: 0,
+            totalQuestions: 0
+        };
+
+        // 更新顯示
+        function updateDisplay() {
+            document.getElementById('coinCount').textContent = gameData.coins;
+            document.getElementById('totalQuizzes').textContent = gameData.totalQuizzes;
+            document.getElementById('correctAnswers').textContent = gameData.correctAnswers;
+            
+            const accuracy = gameData.totalQuestions > 0 ? 
+                Math.round((gameData.correctAnswers / gameData.totalQuestions) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // 添加金幣（供外部測驗頁面調用）
+        function addCoins(amount) {
+            gameData.coins += amount;
+            document.getElementById('coinIcon').classList.add('coin-animation');
+            setTimeout(() => {
+                document.getElementById('coinIcon').classList.remove('coin-animation');
+            }, 600);
+            updateDisplay();
+        }
+
+        // 更新統計（供外部測驗頁面調用）
+        function updateStats(correct, total, quizCompleted = false) {
+            gameData.correctAnswers += correct;
+            gameData.totalQuestions += total;
+            if (quizCompleted) {
+                gameData.totalQuizzes += 1;
+            }
+            updateDisplay();
+        }
+
+        // 顯示即將推出彈窗
+        function showComingSoon() {
+            document.getElementById('comingSoonModal').classList.remove('hidden');
+        }
+
+        // 隱藏即將推出彈窗
+        function hideComingSoon() {
+            document.getElementById('comingSoonModal').classList.add('hidden');
+        }
+
+        // 從 localStorage 載入數據（持久化儲存）
+        function loadGameData() {
+            const saved = localStorage.getItem('mathGameData');
+            if (saved) {
+                gameData = JSON.parse(saved);
+            }
+        }
+
+        // 儲存數據到 localStorage
+        function saveGameData() {
+            localStorage.setItem('mathGameData', JSON.stringify(gameData));
+        }
+
+        // 計算金幣獎勵
+        function calculateCoins(correct, total, quizCompleted = false) {
+            let coins = 0;
+            
+            // 每答對一題：10金幣
+            coins += correct * 10;
+            
+            // 完成測驗獎勵：50金幣
+            if (quizCompleted) {
+                coins += 50;
+            }
+            
+            // 正確率獎勵
+            const accuracy = total > 0 ? correct / total : 0;
+            if (accuracy >= 0.9) {
+                coins += 100; // 90%以上：額外100金幣
+            } else if (accuracy >= 0.8) {
+                coins += 75;  // 80%以上：額外75金幣
+            } else if (accuracy >= 0.7) {
+                coins += 50;  // 70%以上：額外50金幣
+            }
+            
+            return coins;
+        }
+
+        // 顯示金幣獲得動畫
+        function showCoinReward(earnedCoins, quizName) {
+            if (earnedCoins > 0) {
+                // 創建金幣獲得提示
+                const coinAlert = document.createElement('div');
+                coinAlert.innerHTML = `
+                    <div class="fixed top-4 right-4 bg-yellow-400 text-yellow-900 px-6 py-4 rounded-xl shadow-lg font-bold text-lg z-50 animate-bounce">
+                        🎉 完成 ${quizName}！<br>
+                        獲得 ${earnedCoins} 金幣！🪙
+                    </div>
+                `;
+                document.body.appendChild(coinAlert);
+                
+                // 3秒後移除提示
+                setTimeout(() => {
+                    document.body.removeChild(coinAlert);
+                }, 3000);
+            }
+        }
+
+        // 頁面載入時初始化
+        window.onload = function() {
+            // 載入儲存的遊戲數據
+            loadGameData();
+            
+            // 檢查是否從測驗頁面返回
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('quizResult')) {
+                const result = JSON.parse(decodeURIComponent(urlParams.get('quizResult')));
+                
+                // 計算獲得的金幣
+                const earnedCoins = calculateCoins(result.correct, result.total, true);
+                
+                // 更新遊戲數據
+                gameData.coins += earnedCoins;
+                gameData.correctAnswers += result.correct;
+                gameData.totalQuestions += result.total;
+                gameData.totalQuizzes += 1;
+                
+                // 儲存更新後的數據
+                saveGameData();
+                
+                // 顯示獎勵提示
+                showCoinReward(earnedCoins, result.quizName);
+                
+                // 清除 URL 參數（避免重複計算）
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            updateDisplay();
+        };
+
+        // 將金幣系統函數綁定到 window 對象，供其他頁面使用
+        window.addCoins = addCoins;
+        window.updateStats = updateStats;
+        window.getGameData = () => gameData;
+    </script>
 
 </body>
 </html>
