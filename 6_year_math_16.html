@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>七歲數學素養測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        /* Smooth transitions and animations */
+        #app > div {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Floating animation for grade badge */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        /* Question and option text sizes */
+        .question-text {
+            font-size: 1.75rem;
+            line-height: 2.25rem;
+        }
+        .option-text {
+            font-size: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .question-text {
+                font-size: 2rem;
+                line-height: 2.5rem;
+            }
+            .option-text {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="app" class="min-h-screen p-4">
+        <!-- The quiz will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State variables to manage the quiz
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let showResult = false;
+        let startTime = Date.now();
+
+        // Quiz questions for 7-year-olds (Grade 1)
+        const questions = [
+            // 計算 (4題) - 不同的四則運算情境
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "19 + 7 = ?", options: ["24", "25", "26", "27"], correct: 2, type: "calculation", explanation: "19 + 7：先算19 + 1 = 20，再算20 + 6 = 26。湊整數更好算！🎯" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "35 - 19 = ?", options: ["14", "15", "16", "17"], correct: 2, type: "calculation", explanation: "35 - 19：可以算35 - 20 = 15，再加回1 = 16。或用數線倒數！📏" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "4 × 7 = ?（4個7相加）", options: ["26", "27", "28", "29"], correct: 2, type: "calculation", explanation: "4 × 7 = 7 + 7 + 7 + 7 = 28。可以想成4排，每排7個！🌟" },
+            { category: "🧮 計算", color: "bg-red-100 border-red-300", question: "__ - 14 = 9，空格是多少？", options: ["21", "22", "23", "24"], correct: 2, type: "calculation", explanation: "9 + 14 = 23，所以空格是23。檢驗：23 - 14 = 9 ✓" },
+            
+            // 幾何 (4題) - 不同的幾何概念
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "圓形有幾個角？", options: ["0個", "1個", "2個", "3個"], correct: 0, type: "geometry", explanation: "圓形是彎彎的，沒有尖尖的角！只有直線組成的圖形才有角 ⭕" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "球體（皮球）從任何方向看都是什麼形狀？", options: ["圓形", "三角形", "正方形", "長方形"], correct: 0, type: "geometry", explanation: "球體很特別！不管從哪個方向看都是圓形！⚽" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "正方形的四個角都是什麼角？", options: ["銳角", "直角", "鈍角", "平角"], correct: 1, type: "geometry", explanation: "正方形的每個角都是90度的直角，就像教室的牆角一樣！📐" },
+            { category: "🔺 幾何", color: "bg-blue-100 border-blue-300", question: "五邊形有幾個頂點？", options: ["4個", "5個", "6個", "7個"], correct: 1, type: "geometry", explanation: "五邊形有5條邊，就有5個頂點（角的地方）！⭐" },
+            
+            // 應用 (4題) - 各種生活情境
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "班上30人，今天請假6人，來了幾人？", options: ["22人", "23人", "24人", "25人"], correct: 2, type: "application", explanation: "30 - 6 = 24人。總人數減去請假人數就是出席人數！🏫" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "現在10:20，再過40分鐘是幾點？", options: ["10:50", "11:00", "11:10", "11:20"], correct: 1, type: "application", explanation: "10:20 + 40分 = 11:00。或想成10:20 + 40分 = 10:60 = 11:00！⏰" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "15個橘子裝3袋，每袋一樣多，每袋幾個？", options: ["4個", "5個", "6個", "7個"], correct: 1, type: "application", explanation: "15 ÷ 3 = 5個。檢驗：5 + 5 + 5 = 15 ✓ 🍊" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "每本故事書12元，買2本要多少錢？", options: ["20元", "22元", "24元", "26元"], correct: 2, type: "application", explanation: "12 × 2 = 24元。或算12 + 12 = 24元！📚" },
+            
+            // 代數 (3題) - 規律與代數思維
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "找規律：5, 10, 15, 20, ?", options: ["22", "23", "24", "25"], correct: 3, type: "algebra", explanation: "每次加5：5→10→15→20→25。這是5的倍數！🎪" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "如果🌸 × 2 = 12，那麼🌸 = ?", options: ["5", "6", "7", "8"], correct: 1, type: "algebra", explanation: "12 ÷ 2 = 6，所以🌸 = 6。檢驗：6 × 2 = 12 ✓" },
+            { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "數列：20, 17, 14, 11, ?", options: ["7", "8", "9", "10"], correct: 1, type: "algebra", explanation: "每次減3：20→17→14→11→8。倒數的規律！📉" },
+            
+            // 組合 (3題) - 邏輯推理
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "有🍎🍌🍇三種水果，選2種有幾種選法？", options: ["2種", "3種", "4種", "5種"], correct: 1, type: "combination", explanation: "可以選：🍎🍌、🍎🍇、🍌🍇，共3種不同的組合！🍽️" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "哪一組都是動物？", options: ["狗貓鳥", "花草樹", "桌椅床", "紅黃藍"], correct: 0, type: "combination", explanation: "狗🐕、貓🐱、鳥🐦都是動物，其他都不是動物！" },
+            { category: "🧩 組合", color: "bg-yellow-100 border-yellow-300", question: "2個女生3個男生排隊，女生要排前面，有幾種排法？", options: ["10種", "11種", "12種", "13種"], correct: 2, type: "combination", explanation: "女生2人有2×1=2種排法，男生3人有3×2×1=6種排法：2×6=12種！👫" },
+            
+            // 數感 (4題) - 數的感覺與概念
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "哪個數字最接近80？", options: ["72", "76", "84", "88"], correct: 1, type: "number_sense", explanation: "76離80只差4，是最接近的！在數線上距離最短！📏" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "2個巧克力分成6小塊，吃了4小塊，吃了幾分之幾？", options: ["2/6", "4/6", "1/6", "6/6"], correct: 1, type: "number_sense", explanation: "總共6小塊，吃了4小塊，就是4/6（六分之四）！🍫" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "比較：16 ○ 19，○裡應該填什麼？", options: ["<", ">", "=", "×"], correct: 0, type: "number_sense", explanation: "16比19小，所以是16 < 19。小於號開口朝向大數！📊" },
+            { category: "🔢 數感", color: "bg-pink-100 border-pink-300", question: "50個糖果可以分給幾個小朋友，每人10個？", options: ["4人", "5人", "6人", "7人"], correct: 1, type: "number_sense", explanation: "50 ÷ 10 = 5人。或想：10×5 = 50，所以是5個人！🍭" }
+        ];
+
+        const appContainer = document.getElementById('app');
+
+        // Function to handle user's answer
+        function handleAnswer(selectedIndex) {
+            answers[currentQuestionIndex] = selectedIndex;
+            renderApp();
+
+            if (currentQuestionIndex < questions.length - 1) {
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    renderApp();
+                }, 1500);
+            } else {
+                setTimeout(() => {
+                    showResult = true;
+                    renderApp();
+                }, 1500);
+            }
+        }
+
+        // Function to restart the quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = {};
+            showResult = false;
+            startTime = Date.now();
+            renderApp();
+        }
+
+        // Function to calculate final results
+        function calculateResults() {
+            const results = {
+                calculation: { correct: 0, total: 0 },
+                geometry: { correct: 0, total: 0 },
+                application: { correct: 0, total: 0 },
+                algebra: { correct: 0, total: 0 },
+                combination: { correct: 0, total: 0 },
+                number_sense: { correct: 0, total: 0 }
+            };
+
+            questions.forEach((question, index) => {
+                const type = question.type;
+                results[type].total++;
+                if (answers[index] === question.correct) {
+                    results[type].correct++;
+                }
+            });
+            return results;
+        }
+
+        // Main function to render the UI
+        function renderApp() {
+            // Set a different gradient background for variety
+            document.body.className = 'bg-gradient-to-br from-green-400 via-teal-500 to-blue-600';
+
+            if (showResult) {
+                renderResultScreen();
+            } else {
+                renderQuestionScreen();
+            }
+        }
+
+        // Renders the question view
+        function renderQuestionScreen() {
+            const question = questions[currentQuestionIndex];
+            const selectedAnswer = answers[currentQuestionIndex];
+            const isAnswered = selectedAnswer !== undefined;
+
+            const optionsHtml = question.options.map((option, index) => {
+                let buttonClass = 'bg-white border-gray-300 text-gray-700 hover:shadow-lg cursor-pointer';
+                let icon = '';
+
+                if (isAnswered) {
+                    if (index === question.correct) {
+                        buttonClass = 'bg-green-200 border-green-400 text-green-800';
+                        icon = '<span class="inline-block ml-2">✅</span>';
+                    } else if (index === selectedAnswer) {
+                        buttonClass = 'bg-red-200 border-red-400 text-red-800';
+                        icon = '<span class="inline-block ml-2">❌</span>';
+                    } else {
+                        buttonClass = 'bg-gray-200 border-gray-300 text-gray-600';
+                    }
+                }
+
+                return `
+                    <button
+                        onclick="${isAnswered ? '' : `handleAnswer(${index})`}"
+                        ${isAnswered ? 'disabled' : ''}
+                        class="p-4 sm:p-5 rounded-2xl option-text font-bold border-4 transition-all duration-200 transform hover:scale-105 ${buttonClass}"
+                    >
+                        ${option} ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <!-- Grade Badge -->
+                    <div class="text-center mb-4">
+                        <span class="inline-block bg-gradient-to-r from-emerald-500 to-cyan-600 text-white px-6 py-3 rounded-full font-bold text-xl floating shadow-lg">
+                            🚀 數學探險家 🚀
+                        </span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="bg-white bg-opacity-20 rounded-full p-2 mb-6">
+                        <div 
+                            class="bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full h-4 transition-all duration-500 shadow-inner"
+                            style="width: ${((currentQuestionIndex + 1) / questions.length) * 100}%"
+                        ></div>
+                    </div>
+
+                    <div class="text-center text-white text-xl mb-4 font-semibold">
+                        第 ${currentQuestionIndex + 1} 題 / 共 ${questions.length} 題
+                    </div>
+
+                    <!-- Question Card -->
+                    <div class="${question.color} rounded-3xl shadow-2xl p-6 sm:p-8 border-4">
+                        <div class="text-center mb-6">
+                            <div class="text-2xl sm:text-3xl font-bold text-gray-700 mb-4">
+                                ${question.category}
+                            </div>
+                            <div class="question-text font-bold text-gray-800 mb-6 min-h-[6rem] flex items-center justify-center">
+                                ${question.question}
+                            </div>
+                        </div>
+
+                        <!-- Answer Options -->
+                        <div class="grid grid-cols-2 gap-4">
+                            ${optionsHtml}
+                        </div>
+
+                        ${isAnswered ? `
+                            <div class="mt-6">
+                                <div class="text-center text-3xl sm:text-4xl font-bold mb-2">
+                                    ${selectedAnswer === question.correct ? "🎊 真聰明！" : "💡 學到了！"}
+                                </div>
+                                ${question.explanation ? `
+                                    <div class="bg-white bg-opacity-60 rounded-xl p-4 mt-4">
+                                        <div class="text-base font-bold text-gray-700 mb-1">🔍 解題方法：</div>
+                                        <div class="text-base text-gray-700">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
+                                <div class="text-center text-lg text-gray-600 mt-2">
+                                    ${currentQuestionIndex < questions.length - 1 ? '前往下一關...' : '正在計算總分...'}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Renders the result view
+        function renderResultScreen() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            const scorePercentage = totalCorrect / totalQuestions;
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            
+            let resultEmoji = "💪";
+            let resultMessage = "數學路上，每一步都是進步！";
+            let starCount = 1;
+            let medalEmoji = "";
+
+            if (scorePercentage >= 0.95) {
+                resultEmoji = "🏆";
+                resultMessage = "驚人！你已經是數學大師了！";
+                starCount = 5;
+                medalEmoji = "🥇";
+            } else if (scorePercentage >= 0.85) {
+                resultEmoji = "🎉";
+                resultMessage = "太出色了！你的數學能力超強！";
+                starCount = 4;
+                medalEmoji = "🥈";
+            } else if (scorePercentage >= 0.7) {
+                resultEmoji = "😄";
+                resultMessage = "很棒！你正在成為數學高手！";
+                starCount = 3;
+                medalEmoji = "🥉";
+            } else if (scorePercentage >= 0.5) {
+                resultEmoji = "👏";
+                resultMessage = "不錯！持續練習會更厲害！";
+                starCount = 2;
+            }
+
+            const categoryResultsHtml = Object.keys(results).map(key => {
+                const categoryMap = {
+                    calculation: { name: "🧮 計算", style: "bg-red-50 border-red-200 text-red-600" },
+                    geometry: { name: "🔺 幾何", style: "bg-blue-50 border-blue-200 text-blue-600" },
+                    application: { name: "🛒 應用", style: "bg-green-50 border-green-200 text-green-600" },
+                    algebra: { name: "🎨 代數", style: "bg-purple-50 border-purple-200 text-purple-600" },
+                    combination: { name: "🧩 組合", style: "bg-yellow-50 border-yellow-200 text-yellow-600" },
+                    number_sense: { name: "🔢 數感", style: "bg-pink-50 border-pink-200 text-pink-600" },
+                };
+                const info = categoryMap[key];
+                const percentage = results[key].total > 0 ? Math.round((results[key].correct / results[key].total) * 100) : 0;
+                const performanceEmoji = percentage === 100 ? "🌟" : percentage >= 75 ? "✨" : percentage >= 50 ? "👍" : "💪";
+                
+                return `
+                    <div class="${info.style} p-4 rounded-xl border-2 transform hover:scale-105 transition-all duration-200">
+                        <div class="text-lg font-bold flex justify-between items-center">
+                            <span>${info.name}</span>
+                            <span>${performanceEmoji}</span>
+                        </div>
+                        <div class="text-xl font-bold">${results[key].correct}/${results[key].total}</div>
+                        <div class="text-sm">正確率 ${percentage}%</div>
+                        <div class="mt-2 bg-gray-200 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-teal-400 to-blue-500 h-2 rounded-full transition-all duration-1000" 
+                                 style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const starsHtml = Array(starCount).fill('⭐').join(' ');
+
+            appContainer.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 text-center">
+                        <div class="text-7xl mb-4">${resultEmoji}</div>
+                        
+                        ${medalEmoji ? `<div class="text-6xl mb-4">${medalEmoji}</div>` : ''}
+                        
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">探險結束！</h2>
+                        <div class="text-4xl mb-4">${starsHtml}</div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gradient-to-r from-teal-100 to-cyan-200 rounded-xl p-4">
+                                <div class="text-lg text-gray-600">總分</div>
+                                <div class="text-3xl font-bold text-teal-600">${totalCorrect}/${totalQuestions}</div>
+                            </div>
+                            <div class="bg-gradient-to-r from-emerald-100 to-green-200 rounded-xl p-4">
+                                <div class="text-lg text-gray-600">正確率</div>
+                                <div class="text-3xl font-bold text-emerald-600">${Math.round(scorePercentage * 100)}%</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl p-4 mb-6">
+                            <div class="text-lg text-gray-600">探險時間</div>
+                            <div class="text-2xl font-bold text-blue-600">${minutes}分${seconds}秒</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                           ${categoryResultsHtml}
+                        </div>
+
+                        <div class="text-2xl mb-6 font-bold text-gray-700">
+                            ${resultMessage}
+                        </div>
+
+                        <div class="flex gap-4 justify-center">
+                            <button
+                                onclick="restartQuiz()"
+                                class="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xl font-bold py-4 px-8 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                            >
+                                再次探險 🌟
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initial render to start the quiz
+        renderApp();
+
+    </script>
+</body>
+</html>

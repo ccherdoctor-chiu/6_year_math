@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 海洋世界數學素養測驗 🐠</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #87CEEB 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .floating-fish {
+            position: fixed;
+            font-size: 30px;
+            z-index: -1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .fish1 { top: 20%; left: 10%; animation-delay: 0s; }
+        .fish2 { top: 60%; right: 10%; animation-delay: -2s; }
+        .fish3 { top: 40%; left: 5%; animation-delay: -4s; }
+        .bubble { 
+            position: fixed;
+            color: rgba(255,255,255,0.3);
+            font-size: 20px;
+            animation: bubble 8s linear infinite;
+        }
+        .bubble1 { left: 15%; animation-delay: 0s; }
+        .bubble2 { left: 50%; animation-delay: -3s; }
+        .bubble3 { left: 80%; animation-delay: -6s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            25% { transform: translateY(-20px) translateX(10px); }
+            50% { transform: translateY(-40px) translateX(-5px); }
+            75% { transform: translateY(-20px) translateX(15px); }
+        }
+
+        @keyframes bubble {
+            0% { bottom: -50px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { bottom: 100vh; opacity: 0; }
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #1e3c72;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: #2a5298;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: linear-gradient(90deg, #87CEEB, #4682B4);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #32CD32, #228B22);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '🐠';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .quiz-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .question-number {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .category-badge {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            color: #1e3c72;
+            margin-bottom: 30px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            background: linear-gradient(135deg, #E8F4FD, #B3E5FC);
+            border: 3px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #4ECDC4;
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #FFE0B2, #FFCC02);
+            border-color: #FF9800;
+            transform: scale(1.02);
+        }
+
+        .option.correct {
+            background: linear-gradient(135deg, #C8E6C9, #4CAF50);
+            border-color: #2E7D32;
+            color: white;
+        }
+
+        .option.incorrect {
+            background: linear-gradient(135deg, #FFCDD2, #F44336);
+            border-color: #C62828;
+            color: white;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #E1F5FE, #B3E5FC);
+            border-left: 5px solid #4ECDC4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #56CCF2, #2F80ED);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #FD746C, #FF9068);
+        }
+
+        .results {
+            display: none;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .stat-title {
+            font-size: 1.1em;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        .category-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .category-stat {
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #36D1DC, #5B86E5);
+            font-size: 1.5em;
+            padding: 20px 40px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 2em; }
+            .quiz-card { padding: 25px; }
+            .options { grid-template-columns: 1fr; }
+            .question-text { font-size: 1.2em; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .category-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .category-stats { grid-template-columns: 1fr; }
+            .navigation { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 浮動海洋元素 -->
+    <div class="floating-fish fish1">🐠</div>
+    <div class="floating-fish fish2">🐟</div>
+    <div class="floating-fish fish3">🦈</div>
+    <div class="bubble bubble1">○</div>
+    <div class="bubble bubble2">○</div>
+    <div class="bubble bubble3">○</div>
+
+    <div class="container">
+        <!-- 開始畫面 -->
+        <div id="startScreen" class="start-screen">
+            <div class="header">
+                <h1>🌊 海洋世界數學素養測驗 🐠</h1>
+                <p>歡迎來到神奇的海洋世界！讓我們一起在美麗的海底探索數學的奥秘吧！</p>
+                <div style="font-size: 1.1em; color: #2a5298; margin: 20px 0;">
+                    <p>📚 本測驗包含 6 大數學領域，共 22 道題目</p>
+                    <p>🎯 測試內容：計算、幾何、應用、代數、組合、數感</p>
+                    <p>⏰ 建議作答時間：30-40 分鐘</p>
+                </div>
+                <button class="btn start-btn" onclick="startQuiz()">🚀 開始海洋冒險！</button>
+            </div>
+        </div>
+
+        <!-- 測驗進行畫面 -->
+        <div id="quizScreen" style="display: none;">
+            <div class="header">
+                <h1>🌊 海洋世界數學測驗 🐠</h1>
+                <p>和海洋朋友們一起學習數學吧！</p>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">題目 1 / 22</div>
+            </div>
+
+            <div class="quiz-card">
+                <div class="question-header">
+                    <div class="question-number" id="questionNumber">題目 1</div>
+                    <div class="category-badge" id="categoryBadge">🧮 計算</div>
+                </div>
+
+                <div class="question-text" id="questionText"></div>
+
+                <div class="options" id="options"></div>
+
+                <div class="explanation" id="explanation"></div>
+
+                <div class="navigation">
+                    <button class="btn" id="prevBtn" onclick="previousQuestion()" disabled>⬅️ 上一題</button>
+                    <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" disabled>下一題 ➡️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果畫面 -->
+        <div id="resultScreen" class="results">
+            <div class="header">
+                <h1>🎉 恭喜完成海洋冒險！ 🎉</h1>
+                <p>你在海洋世界的數學探索真棒！</p>
+            </div>
+
+            <div class="quiz-card">
+                <div class="score-circle" id="scoreCircle">85%</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">🏆 總分</div>
+                        <div class="stat-value" id="totalScore">18/22</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">📊 正確率</div>
+                        <div class="stat-value" id="accuracy">82%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">⏱️ 完成時間</div>
+                        <div class="stat-value" id="completionTime">15:30</div>
+                    </div>
+                </div>
+
+                <h3 style="color: #1e3c72; margin: 30px 0 20px;">🌊 各領域表現</h3>
+                <div class="category-stats" id="categoryStats"></div>
+
+                <div class="navigation" style="margin-top: 40px;">
+                    <button class="btn btn-restart" onclick="restartQuiz()">🔄 再次挑戰</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 測驗數據
+        const quizData = [
+            // 計算領域 (4題)
+            {
+                category: "🧮 計算",
+                question: "🐠 小魚游泳計數：有 15 隻小丑魚和 27 隻藍吊魚一起游泳，總共有多少隻魚？",
+                options: ["40隻", "42隻", "43隻", "45隻"],
+                correct: 1,
+                explanation: "這是加法計算：15 + 27 = 42。我們可以先算 15 + 20 = 35，再加上 7，得到 42隻魚！🐠✨"
+            },
+            {
+                category: "🧮 計算",
+                question: "⭐ 海星數量變化：海灘上原本有 64 顆海星，被海浪帶走了 38 顆，還剩下多少顆？",
+                options: ["24顆", "26顆", "28顆", "30顆"],
+                correct: 1,
+                explanation: "這是減法計算：64 - 38 = 26。我們可以用借位減法，64 - 38 = 26顆海星留在海灘上！⭐🌊"
+            },
+            {
+                category: "🧮 計算",
+                question: "🐙 章魚觸手乘法：每隻章魚有 8 隻觸手，如果有 4 隻章魚，總共有多少隻觸手？",
+                options: ["28隻", "30隻", "32隻", "34隻"],
+                correct: 2,
+                explanation: "這是乘法計算：8 × 4 = 32。每隻章魚 8 隻觸手，4 隻章魚就是 8+8+8+8 = 32隻觸手！🐙💪"
+            },
+            {
+                category: "🧮 計算",
+                question: "🪸 珊瑚數量填空：珊瑚礁裡有 25 株珊瑚，又新長了一些，現在總共有 43 株。新長了多少株？",
+                options: ["16株", "17株", "18株", "19株"],
+                correct: 2,
+                explanation: "這要用減法來解決：43 - 25 = 18。新長了 18 株珊瑚，讓珊瑚礁更美麗了！🪸🌺"
+            },
+
+            // 幾何領域 (4題)
+            {
+                category: "🔺 幾何",
+                question: "🐚 貝殼形狀識別：下面哪個圖形最像扇貝的殼？",
+                options: ["三角形", "圓形", "扇形", "正方形"],
+                correct: 2,
+                explanation: "扇貝的殼就像扇形一樣，有一個圓心和展開的扇面，就像我們用的扇子！🐚👋"
+            },
+            {
+                category: "🔺 幾何",
+                question: "⭐ 海星對稱軸：一顆標準的海星有多少條對稱軸？",
+                options: ["3條", "4條", "5條", "6條"],
+                correct: 2,
+                explanation: "海星有 5 個觸手，所以有 5 條對稱軸，每條軸都穿過一個觸手的中心和海星的中心！⭐📏"
+            },
+            {
+                category: "🔺 幾何",
+                question: "🏰 城堡積木：用正方體積木蓋海底城堡，如果底層用了 4 個積木排成正方形，這個正方形的每邊有幾個積木？",
+                options: ["1個", "2個", "3個", "4個"],
+                correct: 1,
+                explanation: "4個積木排成正方形，每邊有2個積木，就像 2×2 = 4。想像一個小正方形，每邊2個積木！🏰🧱"
+            },
+            {
+                category: "🔺 幾何",
+                question: "🦀 螃蟹轉彎：螃蟹向右轉了90度，這相當於轉了一圈的多少？",
+                options: ["一半", "四分之一", "三分之一", "六分之一"],
+                correct: 1,
+                explanation: "一整圈是360度，90度是360度的四分之一。就像時鐘從12點轉到3點！🦀🕐"
+            },
+
+            // 應用領域 (4題)
+            {
+                category: "🛒 應用",
+                question: "🕐 潛水時間：小明上午10點開始潛水，潛了2小時30分鐘，他什麼時候結束潛水？",
+                options: ["中午12點", "下午12點30分", "下午1點", "下午1點30分"],
+                correct: 1,
+                explanation: "上午10點 + 2小時30分鐘 = 下午12點30分。2小時帶我們到中午12點，再加30分鐘！🕐🤿"
+            },
+            {
+                category: "🛒 應用",
+                question: "💰 水族館門票：兒童票25元一張，小華買了3張兒童票，需要付多少錢？",
+                options: ["70元", "75元", "80元", "85元"],
+                correct: 1,
+                explanation: "25元 × 3張 = 75元。每張25元，買3張就是25+25+25 = 75元！💰🎫"
+            },
+            {
+                category: "🛒 應用",
+                question: "🏊 游泳距離：游泳池長50公尺，小美游了3個來回，她總共游了多少公尺？",
+                options: ["150公尺", "200公尺", "250公尺", "300公尺"],
+                correct: 3,
+                explanation: "1個來回 = 50×2 = 100公尺，3個來回 = 100×3 = 300公尺。來回要算兩次長度喔！🏊‍♀️📏"
+            },
+            {
+                category: "🛒 應用",
+                question: "🐠 魚缸容量：圓形魚缸可以裝6公升水，方形魚缸可以裝8公升水，兩個魚缸一共可以裝多少公升？",
+                options: ["12公升", "14公升", "16公升", "18公升"],
+                correct: 1,
+                explanation: "圓形魚缸6公升 + 方形魚缸8公升 = 14公升。把兩個魚缸的容量加起來！🐠💧"
+            },
+
+            // 代數領域 (3題)
+            {
+                category: "🎨 代數",
+                question: "🪸 珊瑚成長規律：珊瑚每月長高的高度依序是：2公分、4公分、6公分、8公分...，第5個月會長高多少？",
+                options: ["9公分", "10公分", "11公分", "12公分"],
+                correct: 1,
+                explanation: "這是等差數列，每次增加2公分：2、4、6、8、10。第5個月長高10公分！🪸📈"
+            },
+            {
+                category: "🎨 代數",
+                question: "⚖️ 海草平衡：天平左邊有1個大海螺和2個小海螺，右邊有5個小海螺，天平平衡。1個大海螺等於幾個小海螺？",
+                options: ["2個", "3個", "4個", "5個"],
+                correct: 1,
+                explanation: "大海螺 + 2個小海螺 = 5個小海螺，所以大海螺 = 5-2 = 3個小海螺的重量！⚖️🐚"
+            },
+            {
+                category: "🎨 代數",
+                question: "🌊 海浪規律：海浪的高度變化是：1公尺、3公尺、5公尺、7公尺...，第6個海浪有多高？",
+                options: ["9公尺", "10公尺", "11公尺", "12公尺"],
+                correct: 2,
+                explanation: "每個海浪比前一個高2公尺：1、3、5、7、9、11。第6個海浪高11公尺！🌊📊"
+            },
+
+            // 組合領域 (3題)
+            {
+                category: "🧩 組合",
+                question: "🐟 魚類分組：水族箱裡有熱帶魚、淡水魚、海水魚。如果一條魚不是熱帶魚，也不是淡水魚，那它是什麼魚？",
+                options: ["金魚", "海水魚", "觀賞魚", "小魚"],
+                correct: 1,
+                explanation: "用排除法思考：不是熱帶魚，也不是淡水魚，那就只能是海水魚了！🐟🤔"
+            },
+            {
+                category: "🧩 組合",
+                question: "🐚 貝殼排列：有紅、藍、黃三種顏色的貝殼，每種顏色選一個排成一排，有多少種不同的排列方法？",
+                options: ["3種", "6種", "9種", "12種"],
+                correct: 1,
+                explanation: "3個不同貝殼的排列：紅藍黃、紅黃藍、藍紅黃、藍黃紅、黃紅藍、黃藍紅，共6種！🐚🎨"
+            },
+            {
+                category: "🧩 組合",
+                question: "🦈 鯊魚分類：10隻鯊魚中，有6隻是大白鯊，其餘是錘頭鯊。錘頭鯊比大白鯊少多少隻？",
+                options: ["1隻", "2隻", "3隻", "4隻"],
+                correct: 1,
+                explanation: "總共10隻，大白鯊6隻，錘頭鯊 = 10-6 = 4隻。錘頭鯊比大白鯊少：6-4 = 2隻！🦈📊"
+            },
+
+            // 數感領域 (4題)
+            {
+                category: "🔢 數感",
+                question: "🐠 魚群數量比較：A魚群有87隻魚，B魚群有92隻魚，哪個魚群的魚比較多？",
+                options: ["A魚群", "B魚群", "一樣多", "無法比較"],
+                correct: 1,
+                explanation: "92 > 87，所以B魚群的魚比較多。92比87多5隻魚！🐠📊"
+            },
+            {
+                category: "🔢 數感",
+                question: "💧 海水的一半：水族箱裝滿了100公升的海水，如果倒掉一半，還剩多少公升？",
+                options: ["40公升", "45公升", "50公升", "55公升"],
+                correct: 2,
+                explanation: "一半就是除以2：100 ÷ 2 = 50公升。一半的概念就是平均分成兩份！💧➗"
+            },
+            {
+                category: "🔢 數感",
+                question: "🐙 章魚估算：水族館裡大約有198隻章魚，最接近多少隻？",
+                options: ["100隻", "150隻", "200隻", "250隻"],
+                correct: 2,
+                explanation: "198最接近200，因為198比200只少2，這叫做四捨五入到最接近的百位數！🐙🎯"
+            },
+            {
+                category: "🔢 數感",
+                question: "📏 深度比較：A點水深25公尺，B點水深32公尺，哪一點比較深？深多少公尺？",
+                options: ["A點深7公尺", "B點深7公尺", "A點深5公尺", "B點深5公尺"],
+                correct: 1,
+                explanation: "32公尺 > 25公尺，所以B點比較深。深度差：32 - 25 = 7公尺！📏🌊"
+            }
+        ];
+
+        // 遊戲狀態
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let startTime = null;
+        let score = 0;
+
+        // 開始測驗
+        function startQuiz() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'block';
+            startTime = new Date();
+            showQuestion();
+        }
+
+        // 顯示題目
+        function showQuestion() {
+            const question = quizData[currentQuestion];
+            
+            document.getElementById('questionNumber').textContent = `題目 ${currentQuestion + 1}`;
+            document.getElementById('categoryBadge').textContent = question.category;
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('progressText').textContent = `題目 ${currentQuestion + 1} / ${quizData.length}`;
+            
+            // 更新進度條
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // 顯示選項
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // 重置按鈕狀態
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('explanation').classList.remove('show');
+            
+            // 如果已經回答過，顯示之前的答案
+            if (userAnswers[currentQuestion] !== undefined) {
+                showAnswer(userAnswers[currentQuestion]);
+            }
+        }
+
+        // 選擇選項
+        function selectOption(selectedIndex) {
+            userAnswers[currentQuestion] = selectedIndex;
+            showAnswer(selectedIndex);
+        }
+
+        // 顯示答案
+        function showAnswer(selectedIndex) {
+            const question = quizData[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            // 重置所有選項樣式
+            options.forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // 標記選中的選項
+            options[selectedIndex].classList.add('selected');
+            
+            // 標記正確答案
+            options[question.correct].classList.add('correct');
+            
+            // 如果選錯了，標記錯誤答案
+            if (selectedIndex !== question.correct) {
+                options[selectedIndex].classList.add('incorrect');
+            }
+            
+            // 顯示解釋
+            document.getElementById('explanation').innerHTML = `
+                <strong>💡 解題說明：</strong><br>
+                ${question.explanation}
+            `;
+            document.getElementById('explanation').classList.add('show');
+            
+            // 啟用下一題按鈕
+            document.getElementById('nextBtn').disabled = false;
+            
+            // 最後一題改為完成按鈕
+            if (currentQuestion === quizData.length - 1) {
+                document.getElementById('nextBtn').textContent = '🎉 完成測驗';
+            }
+        }
+
+        // 下一題
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // 上一題
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        // 顯示結果
+        function showResults() {
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'block';
+            
+            // 計算分數
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === quizData[index].correct) {
+                    score++;
+                }
+            });
+            
+            const accuracy = Math.round((score / quizData.length) * 100);
+            const endTime = new Date();
+            const timeTaken = Math.round((endTime - startTime) / 1000 / 60 * 100) / 100;
+            
+            // 顯示總體結果
+            document.getElementById('scoreCircle').textContent = accuracy + '%';
+            document.getElementById('totalScore').textContent = `${score}/${quizData.length}`;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('completionTime').textContent = timeTaken + '分鐘';
+            
+            // 計算各領域表現
+            const categories = {
+                '🧮 計算': { correct: 0, total: 0 },
+                '🔺 幾何': { correct: 0, total: 0 },
+                '🛒 應用': { correct: 0, total: 0 },
+                '🎨 代數': { correct: 0, total: 0 },
+                '🧩 組合': { correct: 0, total: 0 },
+                '🔢 數感': { correct: 0, total: 0 }
+            };
+            
+            quizData.forEach((question, index) => {
+                const category = question.category;
+                categories[category].total++;
+                if (userAnswers[index] === question.correct) {
+                    categories[category].correct++;
+                }
+            });
+            
+            // 顯示各領域統計
+            const categoryStatsContainer = document.getElementById('categoryStats');
+            categoryStatsContainer.innerHTML = '';
+            
+            Object.entries(categories).forEach(([category, stats]) => {
+                const percentage = Math.round((stats.correct / stats.total) * 100);
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'category-stat';
+                categoryElement.innerHTML = `
+                    <div style="font-size: 1.2em; margin-bottom: 8px;">${category}</div>
+                    <div style="font-size: 1.5em; font-weight: bold; color: ${percentage >= 70 ? '#4CAF50' : percentage >= 50 ? '#FF9800' : '#F44336'};">
+                        ${stats.correct}/${stats.total}
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        ${percentage}%
+                    </div>
+                `;
+                categoryStatsContainer.appendChild(categoryElement);
+            });
+        }
+
+        // 重新開始
+        function restartQuiz() {
+            currentQuestion = 0;
+            userAnswers = [];
+            score = 0;
+            startTime = null;
+            
+            document.getElementById('resultScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('nextBtn').textContent = '下一題 ➡️';
+        }
+
+        // 頁面載入完成後的初始化
+        window.addEventListener('load', function() {
+            // 確保開始畫面顯示
+            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
