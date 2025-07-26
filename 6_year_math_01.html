@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六歲數學小測驗</title>
+    <title>六歲數學小測驗 - 支援金幣系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,13 +12,19 @@
         body {
             font-family: 'Noto Sans TC', sans-serif;
         }
-        /* Simple transition for smoother UI updates */
         #app > div {
             animation: fadeIn 0.5s ease-in-out;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        .coin-bounce {
+            animation: coinBounce 0.8s ease-in-out infinite;
+        }
+        @keyframes coinBounce {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
         }
     </style>
 </head>
@@ -33,6 +39,13 @@
         let currentQuestionIndex = 0;
         let answers = {};
         let showResult = false;
+
+        // Quiz configuration
+        const QUIZ_CONFIG = {
+            name: "測驗一",
+            difficulty: "基礎", // 基礎、進階、高手
+            coinMultiplier: 1 // 難度係數
+        };
 
         // All quiz questions and data
         const questions = [
@@ -50,7 +63,7 @@
             { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "媽媽買了3顆糖🍬🍬🍬，吃掉1顆，還有幾顆？", options: ["1", "2", "3", "4"], correct: 1, type: "application" },
             { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "現在是白天☀️，接下來是什麼？", options: ["白天", "晚上🌙", "早上", "中午"], correct: 1, type: "application" },
             { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "哪一條繩子比較長？", options: ["——", "————", "———", "—————"], correct: 3, type: "application" },
-            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "小明有2塊餅乾🍪🍪，小華給他3塊🍪�🍪，現在有幾塊？", options: ["4", "5", "6", "7"], correct: 1, type: "application" },
+            { category: "🛒 應用", color: "bg-green-100 border-green-300", question: "小明有2塊餅乾🍪🍪，小華給他3塊🍪🍪🍪，現在有幾塊？", options: ["4", "5", "6", "7"], correct: 1, type: "application" },
             // 代數 (3題)
             { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "下一個是什麼？⭐🌙⭐🌙⭐？", options: ["⭐", "🌙", "☀️", "🎈"], correct: 1, type: "algebra" },
             { category: "🎨 代數", color: "bg-purple-100 border-purple-300", question: "找規律：🔴🔵🔴🔵？", options: ["🔴", "🔵", "🟡", "🟢"], correct: 0, type: "algebra" },
@@ -68,21 +81,65 @@
 
         const appContainer = document.getElementById('app');
 
+        // Function to calculate earned coins
+        function calculateEarnedCoins(correct, total) {
+            let coins = 0;
+            
+            // 每答對一題：10金幣 * 難度係數
+            coins += correct * 10 * QUIZ_CONFIG.coinMultiplier;
+            
+            // 完成測驗獎勵：50金幣 * 難度係數
+            coins += 50 * QUIZ_CONFIG.coinMultiplier;
+            
+            // 正確率獎勵
+            const accuracy = total > 0 ? correct / total : 0;
+            if (accuracy >= 0.9) {
+                coins += 100 * QUIZ_CONFIG.coinMultiplier; // 90%以上：額外獎勵
+            } else if (accuracy >= 0.8) {
+                coins += 75 * QUIZ_CONFIG.coinMultiplier;  // 80%以上：額外獎勵
+            } else if (accuracy >= 0.7) {
+                coins += 50 * QUIZ_CONFIG.coinMultiplier;  // 70%以上：額外獎勵
+            }
+            
+            return coins;
+        }
+
+        // Function to return to main page with results
+        function returnToMainPage() {
+            const results = calculateResults();
+            const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
+            const totalQuestions = questions.length;
+            
+            // 創建結果對象
+            const quizResult = {
+                quizName: QUIZ_CONFIG.name,
+                difficulty: QUIZ_CONFIG.difficulty,
+                correct: totalCorrect,
+                total: totalQuestions,
+                results: results,
+                timestamp: new Date().toISOString()
+            };
+            
+            // 編碼結果並跳轉回主頁
+            const encodedResult = encodeURIComponent(JSON.stringify(quizResult));
+            window.location.href = `index.html?quizResult=${encodedResult}`;
+        }
+
         // Function to handle user's answer
         function handleAnswer(selectedIndex) {
             answers[currentQuestionIndex] = selectedIndex;
-            renderApp(); // Re-render to show feedback
+            renderApp(); 
 
             if (currentQuestionIndex < questions.length - 1) {
                 setTimeout(() => {
                     currentQuestionIndex++;
                     renderApp();
-                }, 1200); // Wait 1.2 seconds before next question
+                }, 1200); 
             } else {
                 setTimeout(() => {
                     showResult = true;
                     renderApp();
-                }, 1200); // Wait 1.2 seconds before showing results
+                }, 1200);
             }
         }
 
@@ -117,7 +174,6 @@
 
         // Main function to render the UI
         function renderApp() {
-            // Set a gradient background for the body
             document.body.className = 'bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500';
 
             if (showResult) {
@@ -162,6 +218,13 @@
 
             appContainer.innerHTML = `
                 <div class="max-w-2xl mx-auto">
+                    <!-- Header with quiz info -->
+                    <div class="text-center mb-4">
+                        <div class="inline-block bg-white bg-opacity-90 rounded-full px-6 py-2">
+                            <span class="text-lg font-bold text-purple-600">${QUIZ_CONFIG.name} - ${QUIZ_CONFIG.difficulty}</span>
+                        </div>
+                    </div>
+
                     <!-- Progress Bar -->
                     <div class="bg-white bg-opacity-20 rounded-full p-2 mb-6">
                         <div 
@@ -195,6 +258,12 @@
                                 <div class="text-3xl sm:text-4xl font-bold mb-2">
                                     ${selectedAnswer === question.correct ? "🎉 答對了！" : "💪 再試試看！"}
                                 </div>
+                                ${question.explanation ? `
+                                    <div class="bg-white bg-opacity-50 rounded-xl p-4 mt-4">
+                                        <div class="text-sm font-bold text-gray-700 mb-1">💡 小提示：</div>
+                                        <div class="text-sm text-gray-600">${question.explanation}</div>
+                                    </div>
+                                ` : ''}
                                 <div class="text-lg text-gray-600">
                                     ${currentQuestionIndex < questions.length - 1 ? '準備下一題...' : '計算結果中...'}
                                 </div>
@@ -211,6 +280,7 @@
             const totalCorrect = Object.values(results).reduce((sum, r) => sum + r.correct, 0);
             const totalQuestions = questions.length;
             const scorePercentage = totalCorrect / totalQuestions;
+            const earnedCoins = calculateEarnedCoins(totalCorrect, totalQuestions);
             
             let resultEmoji = "💪";
             let resultMessage = "不錯喔！多練習會更棒！📚";
@@ -253,8 +323,21 @@
                             <span class="inline-block mx-2">😊</span>
                         </div>
                         
-                        <div class="text-2xl font-bold text-purple-600 mb-6">
+                        <div class="text-2xl font-bold text-purple-600 mb-4">
                             總分：${totalCorrect} / ${totalQuestions}
+                        </div>
+
+                        <!-- 金幣獎勵顯示 -->
+                        <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 mb-6">
+                            <div class="text-3xl mb-2">🪙</div>
+                            <div class="text-2xl font-bold text-yellow-900 mb-2">恭喜獲得</div>
+                            <div class="text-4xl font-bold text-yellow-900 coin-bounce">${earnedCoins}</div>
+                            <div class="text-xl font-bold text-yellow-900">金幣！</div>
+                            <div class="text-sm text-yellow-800 mt-2">
+                                答對題目：${totalCorrect} × 10 = ${totalCorrect * 10}金幣<br>
+                                完成獎勵：50金幣<br>
+                                ${scorePercentage >= 0.7 ? `正確率獎勵：${earnedCoins - (totalCorrect * 10) - 50}金幣` : ''}
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
@@ -265,12 +348,20 @@
                             ${resultMessage}
                         </div>
 
-                        <button
-                            onclick="restartQuiz()"
-                            class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-4 px-8 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-                        >
-                            再玩一次 🎮
-                        </button>
+                        <div class="flex gap-4 justify-center flex-wrap">
+                            <button
+                                onclick="restartQuiz()"
+                                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xl font-bold py-4 px-6 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                            >
+                                再玩一次 🎮
+                            </button>
+                            <button
+                                onclick="returnToMainPage()"
+                                class="bg-gradient-to-r from-green-500 to-blue-500 text-white text-xl font-bold py-4 px-6 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                            >
+                                回到主頁 🏠
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -282,4 +373,3 @@
     </script>
 </body>
 </html>
-�
